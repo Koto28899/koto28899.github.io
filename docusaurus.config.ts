@@ -40,14 +40,14 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/Koto28899/Koto28899.github.io/docs',
+            'https://github.com/Koto28899/Koto28899.github.io/tree/main',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/Koto28899/Koto28899.github.io/blog',
+            'https://github.com/Koto28899/Koto28899.github.io/tree/main',
         },
         theme: {
           customCss: './src/css/custom.css',
