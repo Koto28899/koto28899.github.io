@@ -1,0 +1,112 @@
+---
+title: 1. 下载、安装 R 语言、配置环境
+---
+
+import FakeLink from "../../../src/components/FakeLink";
+
+## 0. 总结
+
+本文档以 R 4.4.0 为例，展示安装的全过程
+
+## 1. 官网下载
+
+:::tip
+**[Windows 版下载官网](https://cran.r-project.org/bin/windows/base/)**
+:::
+
+进入网站可以找到白底蓝字的" <FakeLink>Download R-x.x.x for Windows</FakeLink> "，
+如 4.4.0 版本的 R 语言" <FakeLink>Download R-4.4.0 for Windows</FakeLink> "。
+
+点一下就能开始下载了。
+
+## 2. 下载后安装
+
+下载后会得到一个叫做 `R-x.x.x-win.exe` 的文件，如 4.4.0 版本的 R 语言就是 `R-4.4.0-win.exe`。
+
+运行该文件，可能会有名叫 `R for Windows x.x.x setup` 的东西索要管理员权限，如 4.4.0 版本的 R 语言就是 `R for Windows 4.4.0 setup`。
+确认后继续安装。
+
+选择语言简体中文后，**一直点下一步**（除非你想把 R 语言装在别的文件夹或者磁盘，比如 D 盘）
+
+:::tip
+R 语言的默认安装路径是：`C:\Program Files\R\R-x.x.x`，如 4.4.0 版本的 R 语言就是 `C:\Program Files\R\R-4.4.0`
+:::
+
+**一直点下一步**。等待出现 "R for Windows x.x.x安装成功" 后，点“结束”退出程序。
+
+## 3. 配置环境变量
+
+### 3.1 为什么要配置环境变量？
+
+配置环境变量，**是为了随时能够在命令行（cmd, powershell）中运行 R 语言**。
+
+当然，不配置也可以，只是运行时不方便，需要多输入一串路径。
+
+比如：
+
+```ps
+# 环境变量已配置
+R.exe
+
+# 环境变量未配置
+&"C:\Program Files\R\R-4.4.0\bin\R.exe"
+```
+
+### 3.2 配置流程
+
+1. **打开菜单**：按一下键盘上的 Windows 键，或者鼠标点击微软的菜单。
+2. **搜索`env`**：会出现两个东西：一个叫`编辑系统环境变量`，另一个叫`编辑账户的环境变量`。
+如果你是在用自己的电脑，随便点开一个，此处以点开`编辑系统环境变量`为例。
+3. 弹出叫做`系统属性`的窗口，在右下角，有`环境变量`，点开，会弹出叫做`环境变量`的窗口，该窗口主有两个部分：`xxx的用户变量`、`系统变量`。
+4. 找到`系统变量`下的`新建`：**`变量名`可以设置为`R_HOME`，`变量值`设置为`C:\Program Files\R`**。
+5. 在`系统变量`中找到`Path`，双击左键点开，会弹出一个叫做`编辑环境变量`的窗口，点击右侧`新建`，**输入`%R_HOME%/R-4.4.0/bin`**。
+6. 记得按`确定`关闭窗口，不要点`取消`，否则无法保存。
+
+:::warning
+记得根据对应的 R 语言版本修改 `%R_HOME%/R-4.4.0/bin`，此处只是以 4.4.0 版本的 R 语言为例。
+:::
+
+### 3.3 检查配置是否成功（交互式使用 R 语言）
+
+打开 cmd 或者 powershell，快捷键 `Win` + `R`，之后输入 `cmd` 或 `powershell`。
+
+```ps
+# 如果你是 cmd，输入 R 或 r 或 R.exe 或 r.exe 可以运行
+# 如果你是 powershell，输入 R.exe 或 r.exe 才可以运行，R 或 r 无法运行。
+# 输入后按下回车键
+R.exe
+
+# 应该出现下面这些内容
+R version 4.4.0 (2024-04-24 ucrt) -- "Puppy Cup"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+>
+
+# Congurations! 出现这个就是配置成功！
+```
+
+:::tip
+```ps
+# 输入 'q()' 退出 R 语言，会询问你是否保存工作镜像（workspace image）
+# y 是保存，n 是不保存，c 是取消退出
+> q()
+
+# 输入 n 后按回车，不保存 workspace image 并退出
+Save workspace image? [y/n/c]:n
+```
+:::
