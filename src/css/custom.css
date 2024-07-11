@@ -4,6 +4,16 @@
  * work well for content-centric websites.
  */
 
+/*
+ * ArcGIS CSS
+ */
+@import "https://js.arcgis.com/calcite-components/2.9.0/calcite.css";
+@import "https://js.arcgis.com/4.30/@arcgis/core/assets/esri/themes/dark/main.css";
+
+:root {
+  --eris-view-outline: 0px
+}
+
 /* You can override the default Infima variables here. */
 :root {
   --ifm-color-primary: #2e8555;

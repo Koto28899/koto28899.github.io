@@ -1,0 +1,195 @@
+---
+title: 3. 二三维视图的联动
+sidebar_position: 3
+---
+
+## 1. 最终效果
+
+import erisConfig from '@arcgis/core/config'
+import Map from '@arcgis/core/Map'
+import MapView from '@arcgis/core/views/MapView'
+import SceneView from '@arcgis/core/views/SceneView'
+import { useEffect } from "react";
+
+export const Instance = () => {
+
+  useEffect(() => {
+    erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+    const map = new Map({
+      basemap: "arcgis/topographic",
+      ground: "world-elevation"
+    })
+    const coordination = {
+      latitude: 122.451,
+      longitude: 30.71
+    }
+    const view2d = new MapView({
+      container: 'view2dDiv',
+      map: map,
+      center: [coordination.latitude, coordination.longitude],
+      zoom: 12
+    })
+    const view3d = new SceneView({
+      container: 'view3dDiv',
+      map: map,
+      camera: {
+        position: {
+          x: coordination.latitude,
+          y: coordination.longitude,
+          z: 2000
+        },
+        tilt: 40
+      },
+    })
+
+    const views = [view2d, view3d]
+    let active = {}
+    const sync = (source) => {
+      if (!active || !active.viewpoint || active !== source) {
+        return
+      }
+      for (const view of views) {
+        if (view !== active) {
+          view.viewpoint = active.viewpoint
+        }
+      }
+    }
+    for (const view of views) {
+      view.watch(['interacting', 'animation'], () => {
+        active = view
+        sync(active)
+      })
+      view.watch('viewpoint', () => sync(view))
+    }
+  }, []);
+
+  return (
+    <div id={'container'} style={{ display: 'flex', flexDirection: 'row' }}>
+      <div id={'view2dDiv'} style={{ height: '500px', width: '100%' }} ></div>
+      <div id={'view3dDiv'} style={{ height: '500px', width: '100%' }} ></div>
+    </div>
+  )
+}
+
+<Instance></Instance>
+
+## 2. 实现
+
+:::tip
+向 `src/App.vue` 添加代码
+:::
+
+### `<template>` 部分
+
+创建两个 div，一个放 2d 视图，一个放 3d 视图。
+
+```html title='src/App.vue'
+<div id="container">
+  <div id="view2dDiv"></div>
+  <div id="view3dDiv"></div>
+</div>
+```
+
+### `<script setup>` 部分
+
+```js title='src/App.vue'
+import Map from '@arcgis/core/Map'
+import MapView from '@arcgis/core/views/MapView'
+import SceneView from '@arcgis/core/views/SceneView'
+
+import { onMounted } from 'vue'
+
+onMounted(() => {
+
+  // 两个 viewDiv 会使用同一个 Map 对象
+  const map = new Map({
+    basemap: "arcgis/topographic",
+    // 将 `ground` 设置为 `world-elevation`
+    ground: "world-elevation"
+  })
+
+  // 创建经纬度对象，方便管理
+  const coordination = {
+    latitude: 122.451,
+    longitude: 30.71
+  }
+
+  // 创建 2d 视图
+  const view2d = new MapView({
+    container: 'view2dDiv',
+    map: map,
+    center: [coordination.latitude, coordination.longitude],
+    zoom: 12
+  })
+
+  // 创建 3d 视图
+  const view3d = new SceneView({
+    container: 'view3dDiv',
+    map: map,
+    camera: {
+      position: {
+        x: coordination.latitude,
+        y: coordination.longitude,
+        z: 2000 // 海拔
+      },
+      tilt: 40 // 视角与地图表面形成的度数。
+    }
+  })
+
+  // 放在数组中方便管理
+  const views = [view2d, view3d]
+
+  // 创建空对象，用于表示当前正在与用户交互的视图
+  let active = {}
+
+  // 用于将当前正与用户交互的视图的 viewpoint，同步到另一个视图上
+  const sync = (source) => {
+    // 如果 active 为空，或者 active.viewpoint 不存在，或者 active 和形参 source 不同，都会直接跳过
+    if (!active || !active.viewpoint || active !== source) {
+      return
+    }
+    // 遍历 views 数组
+    for (const view of views) {
+      if (view !== active) {
+        // 将另一个视图的 viewpoint 修改成和 active 一样的
+        view.viewpoint = active.viewpoint
+      }
+    }
+  }
+
+  // 遍历 views 数组，为每一个 view 设置监听事件
+  for (const view of views) {
+    // 设置第一个监听事件，`interacting` 和 `animation` 的时候，执行下面的函数
+    view.watch(['interacting', 'animation'], () => {
+      // 将 active 设置为当前正在交互的视图
+      active = view
+      sync(active)
+    })
+    // 设置第二个监听事件，`viewpoint` 变化的时候，执行下面的函数
+    view.watch('viewpoint', () => sync(view))
+  }
+})
+```
+
+### `<style>` 部分
+
+```css title='src/App.vue'
+#app,
+#container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+#view2dDiv,
+#view3dDiv {
+  height: 100%;
+  width: 50%;
+}
+```
+
+## 3. 后话
+
+:::tip
+重要的是理解 `sync` 函数和 `watch` 函数的用法和效果。
+:::

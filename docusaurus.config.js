@@ -93,8 +93,8 @@ const config = {
             title: '文档',
             items: [
               {
-                label: 'Vue3 与百度地图开发经验',
-                to: '/docs/Vue3%20与百度地图开发经验/intro',
+                label: 'ArcGIS API for JavaScript 4.30.1 教程',
+                to: '/docs/ArcGIS API for JavaScript 4.30.1 教程/intro',
               },
             ],
           },
