@@ -15,6 +15,7 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly fallback={<span>loading...</span>}>
       {() => {
+        const useEffect = require('react').useEffect
         const erisConfig = require('@arcgis/core/config');
         const Map = require('@arcgis/core/Map');
         const MapView = require('@arcgis/core/views/MapView');
