@@ -14,6 +14,7 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
+    "@arcgis/core": "^4.30.8",
     "@arcgis/map-components": "^4.30.5",
     "@docusaurus/core": "3.4.0",
     "@docusaurus/preset-classic": "3.4.0",
