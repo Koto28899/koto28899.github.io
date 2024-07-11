@@ -94,7 +94,7 @@ const config = {
             items: [
               {
                 label: 'ArcGIS API for JavaScript 4.30.1 教程',
-                to: '/docs/ArcGIS API for JavaScript 4.30.1 教程/intro',
+                to: '/docs/ArcGIS API for JavaScript 4.30.1 教程/前言',
               },
             ],
           },

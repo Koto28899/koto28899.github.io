@@ -1,8 +1,7 @@
 ---
-title: 2. Hello World
+title: 2. 你好临港
 sidebar_position: 2
 ---
-
 
 ## 1. 最终效果
 
@@ -10,30 +9,36 @@ sidebar_position: 2
 本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
 :::
 
-import {useEffect} from "react";
-import erisConfig from '@arcgis/core/config'
-import Map from '@arcgis/core/Map'
-import MapView from '@arcgis/core/views/MapView'
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
 
-export const Instance = () => {
+export const WrappedInstance = () => {
+  return (
+    <BrowserOnly fallback={<span>loading...</span>}>
+      {() => {
+        const erisConfig = require('@arcgis/core/config');
+        const Map = require('@arcgis/core/Map');
+        const MapView = require('@arcgis/core/views/MapView');
 
-  useEffect(() => {
-    erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
-    const map = new Map({
-      basemap: 'arcgis/topographic'
-    })
-    const mapView = new MapView({
-      container: 'viewDiv',
-      map: map,
-      center: [121.895, 30.886],
-      zoom: 14
-    })
-  }, []);
+        useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+          const map = new Map({
+            basemap: 'arcgis/topographic'
+          })
+          const mapView = new MapView({
+            container: 'viewDiv',
+            map: map,
+            center: [121.895, 30.886],
+            zoom: 14
+          })
+        }, []);
 
-  return <div id={'viewDiv'} style={{ width: '100%', height: '500px' }}></div>
+        return <div id={'viewDiv'} style={{ width: '100%', height: '500px' }}></div>
+      }}
+    </BrowserOnly>
+  )
 }
 
-<Instance></Instance>
+<WrappedInstance></WrappedInstance>
 
 ## 2. 实现
 
@@ -100,21 +105,21 @@ height: 100%;
 :::tip
 1. `Map` 类的作用：将所有图层存放在 `Map` 对象里面，由其管理图层（增加或减少）。
 2. `MapView` 类的作用：
-    1. 显示 `Map` 对象中所存的图层
-    2. 负责更高级的显示元素（如滤镜）
-    3. **负责与用户的交互**（如鼠标点击，拖动等）。
+   1. 显示 `Map` 对象中所存的图层
+   2. 负责更高级的显示元素（如滤镜）
+   3. **负责与用户的交互**（如鼠标点击，拖动等）。
 3. 点击地图时，**地图**的边缘会出现蓝色细线。如果不想要，可以将 arcgis css 文件中的 `--eris-view-outline` 由 `2px` 修改为 `0px`。
 4. 地图左上角有加号（+）和减号（-）用来**调节缩放**。如果不想要，可以这样做：
-    ```vue title="src/App.vue"
-    <script setup>
-    import { onMounted } from 'vue'
-    //...
+```vue title="src/App.vue"
+<script setup>
+import { onMounted } from 'vue'
+//...
 
-    onMounted(() => {
-      // ...
-      mapView.ui.remove(['zoom', 'attribution'])
-      // ...
-    })
-    </script>
-    ```
+onMounted(() => {
+ // ...
+ mapView.ui.remove(['zoom', 'attribution'])
+ // ...
+})
+</script>
+```
 :::

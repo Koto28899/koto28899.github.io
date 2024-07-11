@@ -1,77 +1,86 @@
 ---
-title: 3. 二三维视图的联动
+title: 3. 二、三维视图的联动
 sidebar_position: 3
 ---
 
+
 ## 1. 最终效果
 
-import erisConfig from '@arcgis/core/config'
-import Map from '@arcgis/core/Map'
-import MapView from '@arcgis/core/views/MapView'
-import SceneView from '@arcgis/core/views/SceneView'
-import { useEffect } from "react";
+:::tip
+本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+:::
 
-export const Instance = () => {
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
 
-  useEffect(() => {
-    erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
-    const map = new Map({
-      basemap: "arcgis/topographic",
-      ground: "world-elevation"
-    })
-    const coordination = {
-      latitude: 122.451,
-      longitude: 30.71
-    }
-    const view2d = new MapView({
-      container: 'view2dDiv',
-      map: map,
-      center: [coordination.latitude, coordination.longitude],
-      zoom: 12
-    })
-    const view3d = new SceneView({
-      container: 'view3dDiv',
-      map: map,
-      camera: {
-        position: {
-          x: coordination.latitude,
-          y: coordination.longitude,
-          z: 2000
-        },
-        tilt: 40
-      },
-    })
-
-    const views = [view2d, view3d]
-    let active = {}
-    const sync = (source) => {
-      if (!active || !active.viewpoint || active !== source) {
-        return
-      }
-      for (const view of views) {
-        if (view !== active) {
-          view.viewpoint = active.viewpoint
-        }
-      }
-    }
-    for (const view of views) {
-      view.watch(['interacting', 'animation'], () => {
-        active = view
-        sync(active)
-      })
-      view.watch('viewpoint', () => sync(view))
-    }
-  }, []);
-
+export const WrappedInstance = () => {
   return (
-    <div id={'container'} style={{ display: 'flex', flexDirection: 'row' }}>
-      <div id={'view2dDiv'} style={{ height: '500px', width: '100%' }} ></div>
-      <div id={'view3dDiv'} style={{ height: '500px', width: '100%' }} ></div>
-    </div>
+    <BrowserOnly fallback={<span>loading...</span>}>
+      {() => {
+        const erisConfig = require('@arcgis/core/config');
+        const Map = require('@arcgis/core/Map');
+        const MapView = require('@arcgis/core/views/MapView');
+        const SceneView = require('@arcgis/core/views/SceneView');
+
+        erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+        const map = new Map({
+          basemap: "arcgis/topographic",
+          ground: "world-elevation"
+        })
+        const coordination = {
+          latitude: 122.451,
+          longitude: 30.71
+        }
+        const view2d = new MapView({
+          container: 'view2dDiv',
+          map: map,
+          center: [coordination.latitude, coordination.longitude],
+          zoom: 12
+        })
+        const view3d = new SceneView({
+          container: 'view3dDiv',
+          map: map,
+          camera: {
+            position: {
+              x: coordination.latitude,
+              y: coordination.longitude,
+              z: 2000
+            },
+            tilt: 40
+          },
+        })
+
+        const views = [view2d, view3d]
+        let active = {}
+        const sync = (source) => {
+          if (!active || !active.viewpoint || active !== source) {
+            return
+          }
+          for (const view of views) {
+            if (view !== active) {
+              view.viewpoint = active.viewpoint
+            }
+          }
+        }
+        for (const view of views) {
+          view.watch(['interacting', 'animation'], () => {
+            active = view
+            sync(active)
+          })
+          view.watch('viewpoint', () => sync(view))
+        }
+
+        return (
+          <div id={'container'} style={{ display: 'flex', flexDirection: 'row' }}>
+            <div id={'view2dDiv'} style={{ height: '500px', width: '100%' }} ></div>
+            <div id={'view3dDiv'} style={{ height: '500px', width: '100%' }} ></div>
+          </div>
+        )
+      }}
+    </BrowserOnly>
   )
 }
 
-<Instance></Instance>
+<WrappedInstance></WrappedInstance>
 
 ## 2. 实现
 
