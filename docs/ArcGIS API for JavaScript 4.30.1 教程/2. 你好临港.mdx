@@ -16,9 +16,9 @@ export const WrappedInstance = () => {
     <BrowserOnly fallback={<span>loading...</span>}>
       {() => {
         const useEffect = require('react').useEffect
-        const erisConfig = require('@arcgis/core/config');
-        const Map = require('@arcgis/core/Map');
-        const MapView = require('@arcgis/core/views/MapView');
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
 
         useEffect(() => {
           erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'

@@ -16,10 +16,10 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly fallback={<span>loading...</span>}>
       {() => {
-        const erisConfig = require('@arcgis/core/config');
-        const Map = require('@arcgis/core/Map');
-        const MapView = require('@arcgis/core/views/MapView');
-        const SceneView = require('@arcgis/core/views/SceneView');
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const SceneView = require('@arcgis/core/views/SceneView').default;
 
         erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
         const map = new Map({
