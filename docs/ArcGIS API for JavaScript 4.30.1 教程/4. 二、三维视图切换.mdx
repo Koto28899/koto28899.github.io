@@ -1,0 +1,256 @@
+---
+title: 4. 二、三维视图的切换
+sidebar_position: 4
+---
+
+## 1. 最终效果
+
+:::tip
+本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+:::
+
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
+
+export const WrappedInstance = () => {
+  return (
+    <BrowserOnly>
+      {() => {
+        const useState = require('react').useState;
+        const useEffect = require('react').useEffect;
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const SceneView = require('@arcgis/core/views/SceneView').default;
+        const [is2d, setIs2d] = useState(false)
+        useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+          // 在 二、三维视图联动的基础上
+          const map = new Map({
+            basemap: "arcgis/topographic",
+            ground: "world-elevation"
+          })
+          const coordination = {
+            latitude: 122.451,
+            longitude: 30.71
+          }
+          const view2d = new MapView({
+            container: 'view2dDiv',
+            map: map,
+            center: [coordination.latitude, coordination.longitude],
+            zoom: 12
+          })
+          const view3d = new SceneView({
+            container: 'view3dDiv',
+            map: map,
+            camera: {
+              position: {
+                x: coordination.latitude,
+                y: coordination.longitude,
+                z: 2000
+              },
+              tilt: 40
+            },
+          })
+
+          // 移除 3D 视图左上角的 `拖动旋转` 和 `指南针` 按钮
+          view3d.ui.remove(['navigation-toggle', 'compass'])
+
+          const views = [view2d, view3d]
+          let active = {}
+          const sync = (source) => {
+            if (!active || !active.viewpoint || active !== source) {
+              return
+            }
+            for (const view of views) {
+              if (view !== active) {
+                view.viewpoint = active.viewpoint
+              }
+            }
+          }
+          for (const view of views) {
+            view.watch(['interacting', 'animation'], () => {
+              active = view
+              sync(active)
+            })
+            view.watch('viewpoint', () => sync(view))
+          }
+        }, [])
+        const Switch = () => {
+          const handleClick = (event) => {
+            event.preventDefault()
+            setIs2d(current => !current)
+          }
+          return (
+            <button
+              onClick={event => handleClick(event)}
+              style={{
+                borderRadius: '50%',
+                position: 'absolute',
+                marginTop: '100px',
+                marginLeft: '10px',
+                padding: '0.75rem',
+                cursor: "pointer",
+                zIndex: 2,
+                textAlign: 'center'
+              }}
+            >{ is2d ? '3d' : '2d' }</button>
+          )
+        }
+        const commonStyle = {
+          height: '100%',
+          width: '100%',
+          top: '0px',
+          left: '0px',
+          position: 'absolute'
+        }
+        return (
+          <div id={'container'} style={{ width: "100%", height: "500px", position: 'relative'}}>
+            <div id={'view2dDiv'} style={{ ...commonStyle, zIndex: is2d ? 1 : 0 }}></div>
+            <div id={'view3dDiv'} style={{ ...commonStyle, zIndex: is2d ? 0 : 1 }}></div>
+            <Switch></Switch>
+          </div>
+        )
+      }}
+    </BrowserOnly>
+  )
+}
+
+<WrappedInstance></WrappedInstance>
+
+## 2. 实现
+
+:::tip
+本小节的效果在 [3. 二、三维视图联动](二、三维视图联动) 的基础上修改得到，修改如下：
+
+1. 移除了 3d 视图左上角的 “拖动旋转” 和 “指南针” 按钮，只留下了调节缩放大小的按钮。目的是为了给切换2d3d按钮腾出空间。
+    ```js title='src/App.vue'
+    <srcipt setup>
+    // ...
+    view3d.ui.remove(['navigation-toggle', 'compass'])
+    // ...
+    </script>
+    ```
+2. 新增了一个按钮，用于切换 2d、3d 视图。
+    ```html title='src/App.vue'
+    <template>
+    <!-- ... -->
+      <button class="switch" ... >{{ ... }}</button>
+    <!-- ... -->
+    </template>
+    ```
+3. 修改了视图显示的样式。
+:::
+
+### `<template>` 部分
+
+```html title=’src/App‘
+<div id='container'>
+  <div id='view2dDiv' :style='{ ...commonStyle, zIndex: is2d ? 1 : 0 }'></div>
+  <div id='view3dDiv' :style='{ ...commonStyle, zIndex: is2d ? 0 : 1 }'></div>
+  <button
+      class="switch"
+      @click="event => { event.preventDefault(); is2d = !is2d }"
+  >{{ is2d ? '2d' : '3d' }}</button>
+</div>
+```
+
+### `<script setup>` 部分
+
+```js title=’src/App‘
+import { onMounted, ref } from 'vue'
+import Map from '@arcgis/core/Map'
+import MapView from '@arcgis/core/views/MapView'
+import SceneView from "@arcgis/core/views/SceneView";
+
+const is2d = ref(false)
+
+const commonStyle = {
+  height: '100%',
+  width: '100%',
+  top: '0px',
+  left: '0px',
+  position: 'absolute'
+}
+
+onMounted(() => {
+  const map = new Map({
+    basemap: "arcgis/topographic",
+    ground: "world-elevation"
+  })
+  const coordination = {
+    latitude: 122.451,
+    longitude: 30.71
+  }
+  const view2d = new MapView({
+    container: 'view2dDiv',
+    map: map,
+    center: [coordination.latitude, coordination.longitude],
+    zoom: 12
+  })
+  const view3d = new SceneView({
+    container: 'view3dDiv',
+    map: map,
+    camera: {
+      position: {
+        x: coordination.latitude,
+        y: coordination.longitude,
+        z: 2000
+      },
+      tilt: 40
+    },
+  })
+
+  // 移除 3D 视图左上角的 `拖动旋转` 和 `指南针` 按钮
+  view3d.ui.remove(['navigation-toggle', 'compass'])
+
+  const views = [view2d, view3d]
+  let active = {}
+  const sync = (source) => {
+    if (!active || !active.viewpoint || active !== source) {
+      return
+    }
+    for (const view of views) {
+      if (view !== active) {
+        view.viewpoint = active.viewpoint
+      }
+    }
+  }
+  for (const view of views) {
+    view.watch(['interacting', 'animation'], () => {
+      active = view
+      sync(active)
+    })
+    view.watch('viewpoint', () => sync(view))
+  }
+})
+```
+
+### `<style>` 部分
+
+:::tip
+两个视图的样式为了方便管理，没有放在 `style` 部分，而是放在了 `<script setup>` 中。
+:::
+
+:::warning
+一定要记得设置 `container` 的位置为 `relative` 否则两个视图的 `absolute` 会以一种奇怪的方式呈现。
+:::
+
+```css title=’src/App‘
+#container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.switch {
+  border-radius: 50%;
+  position: absolute;
+  margin-top: 100px;
+  margin-left: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  z-index: 2;
+  text-align: center;
+}
+```
+
+## 3. 后话
