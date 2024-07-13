@@ -1,0 +1,58 @@
+---
+title: 5. 切换三维视图的天气（未完成）
+sidebar_position: 5
+---
+
+## 1. 最终效果
+
+:::tip
+本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+:::
+
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
+
+export const WrappedInstance = () => {
+  return (
+    <BrowserOnly>
+      {() => {
+        const useState = require('react').useState;
+        const useEffect = require('react').useEffect;
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const SceneView = require('@arcgis/core/layers/SceneLayer').default;
+        const IntegratedMeshLayer = require('@arcgis/core/layers/SceneLayer').default;
+        useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+          // TODO
+        }, [])
+        return (
+          <div id={'container'}>
+            <div id={'viewDiv'}></div>
+            <div className={'item'}></div>
+          </div>
+        )
+      }}
+    </BrowserOnly>
+  )
+}
+
+<WrappedInstance></WrappedInstance>
+
+## 2. 实现
+
+### `<template>` 部分
+
+```html title='src/App.vue'
+```
+
+### `<script setup>` 部分
+
+```js title='src/App.vue'
+```
+
+### `<style>` 部分
+
+```css title='src/App.vue'
+```
+
+## 3. 后话

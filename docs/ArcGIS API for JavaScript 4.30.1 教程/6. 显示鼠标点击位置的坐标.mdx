@@ -1,0 +1,185 @@
+---
+title: 6. 显示鼠标点击位置的坐标
+sidebar_position: 6
+---
+
+## 1. 最终效果
+
+:::tip
+本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+:::
+
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
+
+export const WrappedInstance = () => {
+  return (
+    <BrowserOnly>
+      {() => {
+        const useState = require('react').useState;
+        const useEffect = require('react').useEffect;
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const [webMercator, setWebMercator] = useState({ x: undefined, y: undefined })
+        const [wgs84, setWgs84] = useState({ latitude: undefined, longitude: undefined })
+        useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+          const map = new Map({
+            basemap: 'arcgis/imagery'
+          })
+          const mapView = new MapView({
+            map: map,
+            container: 'viewDiv',
+            center: [121.895, 30.886],
+            zoom: 15
+          })
+          mapView.on('click', (event) => {
+            const tmp = mapView.toMap({
+              x: event.x,
+              y: event.y
+            })
+            setWebMercator(_ => { return { x: tmp.x, y: tmp.y } })
+            setWgs84(_ => { return { longitude: tmp.longitude, latitude: tmp.latitude } })
+          })
+        }, [])
+        const ClipToBoard = ({ content }) => {
+          const handleClick = (event) => {
+            event.preventDefault()
+            const temp = document.createElement('input')
+            temp.setAttribute('value', content)
+            document.body.appendChild(temp)
+            temp.select()
+            document.execCommand('copy')
+            document.body.removeChild(temp)
+          }
+          return <button onClick={event => handleClick(event)} style={{ marginLeft: '3rem' }}>复制到剪切板</button>
+        }
+        return (
+          <div id={'container'} style={{ position: 'relative', width: '100%', height: '500px' }}>
+            <div id={'viewDiv'} style = {{ width: '100%', height: '100%' }}></div>
+            <div className={'panel'} style={{ position: 'absolute', top: '16px', left: '60px', backgroundColor: 'white', padding: '4px' }}>
+              <div>
+                <span>Web 墨卡托参考系坐标：X：{ webMercator.x }，Y：{ webMercator.y }</span>
+                <ClipToBoard content={ `${webMercator.x}, ${webMercator.y}` }></ClipToBoard>
+              </div>
+              <div>
+                <span>WGS84 参考系坐标：经度：{ wgs84.longitude }，纬度：{ wgs84.latitude }</span>
+                <ClipToBoard content={ `${wgs84.longitude}, ${wgs84.latitude}` }></ClipToBoard>
+              </div>
+            </div>
+          </div>
+        )
+      }}
+    </BrowserOnly>
+  )
+}
+
+<WrappedInstance></WrappedInstance>
+
+## 2. 实现
+
+### `<template>` 部分
+
+```html title='src/App.vue'
+  <div id="container">
+    <div id="viewDiv"></div>
+    <el-main class="panel">
+      <div>
+        <span>Web 墨卡托参考系坐标：X：{{ webMercator.x }}，Y：{{ webMercator.y }}</span>
+        <el-button class="clipToBoard" @click="event => handleClick(event, `${webMercator.x}, ${webMercator.y}`)">复制到剪切板</el-button>
+      </div>
+      <div>
+        <span>WGS84 参考系坐标：经度：{{ wgs84.longitude }}，纬度：{{ wgs84.latitude }}</span>
+        <el-button class="clipToBoard" @click="event => handleClick(event, `${wgs84.longitude}, ${wgs84.latitude}`)">复制到剪切板</el-button>
+      </div>
+    </el-main>
+  </div>
+```
+
+### `<script setup>` 部分
+
+:::tip
+本小节实现的关键在于，用 `MapView.on()` 为 `MapView` 添加 `click` 事件。并且通过 `MapView.toMap()` 得到对应的坐标。
+:::
+
+```js title='src/App.vue'
+import {onMounted, ref} from "vue";
+import MapView from "@arcgis/core/views/MapView";
+import Map from '@arcgis/core/Map'
+
+const webMercator = ref({
+  x: undefined,
+  y: undefined,
+})
+
+const wgs84 = ref({
+  longitude: undefined,
+  latitude: undefined
+})
+
+const handleClick = (event, content) => {
+  event.preventDefault()
+  const temp = document.createElement('input')
+  temp.setAttribute('value', content)
+  document.body.appendChild(temp)
+  temp.select()
+  document.execCommand('copy')
+  document.body.removeChild(temp)
+}
+
+onMounted(() => {
+  const map = new Map({
+    basemap: 'arcgis/imagery'
+  })
+  const mapView = new MapView({
+    map: map,
+    container: 'viewDiv',
+    center: [121.895, 30.886],
+    zoom: 15
+  })
+  /*
+   * 关键部分，为视图添加事件
+   */
+  mapView.on('click', (event) => {
+    const tmp = mapView.toMap({ x: event.x, y: event.y })
+    webMercator.value = { x: tmp.x, y: tmp.y }
+    wgs84.value = { longitude: tmp.longitude, latitude: tmp.latitude }
+  })
+})
+```
+
+### `<style>` 部分
+
+```css title='src/App.vue'
+#container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#viewDiv {
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  background-color: white;
+  position: absolute;
+  top: 16px;
+  left: 60px;
+}
+
+.clipToBoard {
+  margin-left: 1rem;
+}
+```
+
+## 3. 后话
+
+`MapView` 常用事件：
+
+| 事件名称                | 返回参数类型（TypeScript）                                                                                                                          | 说明                 |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| click(double-click) | \{ <br/>mapPoint: Point, // 地图的坐标 <br/>x: Number, // 屏幕的 x 坐标 <br/>y: Number, // 屏幕的 y 坐标 <br/>type: 'click' <br/>\}                        | 鼠标单击视图触发，但会被双击事件阻止 |
+| layerview-create    | \{ <br/>layer: Layer, <br/>layerView: LayerView <br/>\}                                                                                     | 创建图层时触发            |
+| pointer-move        | \{ <br/>pointerType: 'move', <br/>x: Number, // 屏幕的 x 坐标 <br/>y: Number, // 屏幕的 y 坐标 <br/>button: Number, <br/>type: 'pointer-move' <br/>\} | 鼠标移动后触发            |
