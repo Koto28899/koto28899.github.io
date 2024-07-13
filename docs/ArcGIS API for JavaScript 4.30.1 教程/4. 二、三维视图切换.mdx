@@ -30,13 +30,13 @@ export const WrappedInstance = () => {
             ground: "world-elevation"
           })
           const coordination = {
-            latitude: 122.451,
-            longitude: 30.71
+            longitude: 122.451,
+            latitude: 30.71
           }
           const view2d = new MapView({
             container: 'view2dDiv',
             map: map,
-            center: [coordination.latitude, coordination.longitude],
+            center: [coordination.longitude, coordination.latitude],
             zoom: 12
           })
           const view3d = new SceneView({
@@ -44,8 +44,8 @@ export const WrappedInstance = () => {
             map: map,
             camera: {
               position: {
-                x: coordination.latitude,
-                y: coordination.longitude,
+                x: coordination.longitude,
+                y: coordination.latitude,
                 z: 2000
               },
               tilt: 40
@@ -178,13 +178,13 @@ onMounted(() => {
     ground: "world-elevation"
   })
   const coordination = {
-    latitude: 122.451,
-    longitude: 30.71
+    longitude: 122.451,
+    latitude: 30.71
   }
   const view2d = new MapView({
     container: 'view2dDiv',
     map: map,
-    center: [coordination.latitude, coordination.longitude],
+    center: [coordination.longitude, coordination.latitude],
     zoom: 12
   })
   const view3d = new SceneView({
@@ -192,8 +192,8 @@ onMounted(() => {
     map: map,
     camera: {
       position: {
-        x: coordination.latitude,
-        y: coordination.longitude,
+        x: coordination.longitude,
+        y: coordination.latitude,
         z: 2000
       },
       tilt: 40

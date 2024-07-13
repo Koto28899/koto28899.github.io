@@ -29,13 +29,13 @@ export const WrappedInstance = () => {
             ground: "world-elevation"
           })
           const coordination = {
-            latitude: 122.451,
-            longitude: 30.71
+            longitude: 122.451,
+            latitude: 30.71
           }
           const view2d = new MapView({
             container: 'view2dDiv',
             map: map,
-            center: [coordination.latitude, coordination.longitude],
+            center: [coordination.longitude, coordination.latitude],
             zoom: 12
           })
           const view3d = new SceneView({
@@ -43,8 +43,8 @@ export const WrappedInstance = () => {
             map: map,
             camera: {
               position: {
-                x: coordination.latitude,
-                y: coordination.longitude,
+                x: coordination.longitude,
+                y: coordination.latitude,
                 z: 2000
               },
               tilt: 40
@@ -122,15 +122,15 @@ onMounted(() => {
 
   // 创建经纬度对象，方便管理
   const coordination = {
-    latitude: 122.451,
-    longitude: 30.71
+    longitude: 122.451,
+    latitude: 30.71
   }
 
   // 创建 2d 视图
   const view2d = new MapView({
     container: 'view2dDiv',
     map: map,
-    center: [coordination.latitude, coordination.longitude],
+    center: [coordination.longitude, coordination.latitude],
     zoom: 12
   })
 
@@ -140,8 +140,8 @@ onMounted(() => {
     map: map,
     camera: {
       position: {
-        x: coordination.latitude,
-        y: coordination.longitude,
+        x: coordination.longitude,
+        y: coordination.latitude,
         z: 2000 // 海拔
       },
       tilt: 40 // 视角与地图表面形成的度数。
