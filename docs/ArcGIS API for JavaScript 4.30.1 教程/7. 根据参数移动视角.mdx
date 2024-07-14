@@ -1,0 +1,567 @@
+---
+title: 7. 根据参数移动视角
+sidebar_position: 7
+---
+
+## 1. 最终效果
+
+:::tip
+本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+:::
+
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
+
+export const WrappedInstance = () => {
+  return (
+    <BrowserOnly>
+      {() => {
+        const useState = require('react').useState;
+        const useEffect = require('react').useEffect;
+        const useRef = require('react').useRef;
+        const forwardRef = require('react').forwardRef;
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const SceneView = require('@arcgis/core/views/SceneView').default;
+        const [is2d, setIs2d] = useState(true)
+        const [display, setDisplay] = useState(false);
+        const map = useRef(new Map({
+          basemap: "arcgis/topographic",
+          ground: "world-elevation"
+        }))
+        let view2d = useRef(null)
+        let view3d = useRef(null)
+        useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+          const coordinate = {
+            longitude: 122.451, 
+            latitude: 30.71
+          }
+          view2d.current = new MapView({
+            container: 'view2dDiv',
+            map: map.current,
+            center: [coordinate.longitude, coordinate.latitude],
+            zoom: 12
+          })
+          view3d.current = new SceneView({
+            container: 'view3dDiv',
+            map: map.current,
+            camera: {
+              position: {
+                x: coordinate.longitude,
+                y: coordinate.latitude,
+                z: 2000
+              },
+              tilt: 40
+            },
+          })
+          view3d.current.ui.remove(['navigation-toggle', 'compass'])
+          const views = [view2d.current, view3d.current]
+          let active = {}
+          const sync = (source) => {
+            if (!active || !active.viewpoint || active !== source) {
+              return
+            }
+            for (const view of views) {
+              if (view !== active) {
+                view.viewpoint = active.viewpoint
+              }
+            }
+          }
+          for (const view of views) {
+            view.watch(['interacting', 'animation'], () => {
+              active = view
+              sync(active)
+            })
+            view.watch('viewpoint', () => sync(view))
+          }
+        }, [])
+        const longitudeRef = useRef(0)
+        const latitudeRef = useRef(0)
+        const zoomRef = useRef(0)
+        const animationDurationRef = useRef(0)
+        const xRef = useRef(0)
+        const yRef = useRef(0)
+        const zRef = useRef(0)
+        const tiltRef = useRef(0)
+        const headingRef = useRef(0)
+        const Switch = () => {
+          const handleClick = (event) => {
+            event.preventDefault()
+            setIs2d(current => !current)
+          }
+          return (
+            <button
+              onClick={event => handleClick(event)}
+              style={{
+                position: 'absolute',
+                marginTop: '100px',
+                marginLeft: '10px',
+                padding: '0.75rem',
+                cursor: "pointer",
+                zIndex: 2,
+                textAlign: 'center'
+              }}
+            >{ is2d ? '3d' : '2d' }</button>
+          )
+        }
+        const commonStyle = {
+          height: '100%',
+          width: '100%',
+          top: '0px',
+          left: '0px',
+          position: 'absolute'
+        }
+        const commonDialogStyle = {
+          backgroundColor: 'white',
+          borderStyle: 'solid',
+          borderRadius: '10px',
+          padding: '1rem',
+          position: "absolute",
+          top: '20px',
+          left: '120px',
+          zIndex: 2
+        }
+        const commonFormStyle = {
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: 'center',
+          alignItems: 'center'
+        }
+        const commonInputStyle = {
+          display: "flex",
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: '100%',
+          marginTop: '8px'
+        }
+        const SubmitButton = () => {
+          return <button type="submit" style={{ padding: '4px 1rem', marginTop: '1rem', cursor: 'pointer' }}>移动</button>
+        }
+        const CancelButton = () => {
+          return <button
+            onClick={ event => { event.preventDefault(); setDisplay(origin => false) }}
+            style={{ padding: '4px 1rem', marginTop: '1rem', cursor: 'pointer' }}
+          >取消</button>
+        }
+        const FormButtonGroup = () => {
+          return (
+            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: '60%' }}>
+              <SubmitButton></SubmitButton>
+              <CancelButton></CancelButton>
+            </div>
+          )
+        }
+        const FormInput = forwardRef(({ field, value }, ref) => {
+          return (
+            <div style={ commonInputStyle }>
+              <label>{ field }</label>
+              <input placeholder={ field } required={ true } ref={ ref } value={ value } />
+            </div>
+          )
+        })
+        const Dialog2d = () => {
+          const handleSubmit = (event) => {
+            event.preventDefault()
+            view2d.current.goTo({
+              center: [Number(longitudeRef.current.value), Number(latitudeRef.current.value)],
+              zoom: Number(zoomRef.current.value)
+            }, {
+              duration: Number(animationDurationRef.current.value)
+            })
+          }
+          const requires = {
+            longitude: '经度',
+            latitude: '纬度',
+            zoom: '缩放级别',
+            animationDuration: '动画时间（ms）'
+          }
+          return (
+            <div id={ 'dialog2d' } style={ commonDialogStyle }>
+              <header>输入<span style={{ fontWeight: 'bold' }}>二维地图</span>参数以移动到目标坐标点</header>
+              <form onSubmit={ event => handleSubmit(event) } style={ commonFormStyle }>
+                <FormInput field={ requires.longitude } ref={ longitudeRef } value={ 121.895 } />
+                <FormInput field={ requires.latitude } ref={ latitudeRef } value={ 30.886 } />
+                <FormInput field={ requires.zoom } ref={ zoomRef } value={ 14 } />
+                <FormInput field={ requires.animationDuration } ref={ animationDurationRef } value={ 1200 } />
+                <FormButtonGroup></FormButtonGroup>
+              </form>
+            </div>
+          )
+        }
+        const Dialog3d = () => {
+          const handleSubmit = (event) => {
+            event.preventDefault()
+            view3d.current.goTo({
+              position: {
+                x: Number(xRef.current.value),
+                y: Number(yRef.current.value),
+                z: Number(zRef.current.value),
+                spaticalReference: { wkid: 3875 }
+              },
+              tilt: Number(tiltRef.current.value),
+              heading: Number(headingRef.current.value)
+            }, {
+              duration: Number(animationDurationRef.current.value)
+            })
+          }
+          const requires = {
+            x: 'x 坐标',
+            y: 'y 坐标',
+            z: '相机高度',
+            tilt: '俯仰角角度',
+            heading: '方位角角度',
+            animationDuration: '动画时间（ms）'
+          }
+          return (
+            <div id={ 'dialog3d' } style={ commonDialogStyle }>
+              <header>输入<span style={{ fontWeight: 'bold' }}>三维地图</span>参数以移动到目标坐标点</header>
+              <form onSubmit={ event => handleSubmit(event) } style={ commonFormStyle }>
+                <FormInput field={ requires.x } ref={ xRef } value={ 121.895 } />
+                <FormInput field={ requires.y } ref={ yRef } value={ 30.886 } />
+                <FormInput field={ requires.z } ref={ zRef } value={ 2000 } />
+                <FormInput field={ requires.tilt } ref={ tiltRef } value={ 60 } />
+                <FormInput field={ requires.heading } ref={ headingRef } value={ 60 } />
+                <FormInput field={ requires.animationDuration } ref={ animationDurationRef } value={ 1200 } />
+                <FormButtonGroup></FormButtonGroup>
+              </form>
+            </div>
+          )
+        }
+        const Dialog = () => {
+          const handleClick = (event) => {
+            event.preventDefault()
+            setDisplay(origin => true)
+          }
+          return (
+            <>
+              <button
+                id={'dialog'}
+                onClick={event => handleClick(event)}
+                style={{
+                  position: 'absolute',
+                  marginTop: '150px',
+                  marginLeft: '10px',
+                  padding: '0.75rem',
+                  cursor: "pointer",
+                  zIndex: 2,
+                  textAlign: 'center'
+                }}
+              >移动到</button>
+              {
+                display
+                  ? (
+                      is2d
+                        ? <Dialog2d></Dialog2d>
+                        : <Dialog3d></Dialog3d>
+                    )
+                  : null
+              }
+            </>
+          )
+        }
+        return (
+          <div id={'container'} style={{ width: "100%", height: "500px", position: 'relative'}}>
+            <div id={'view2dDiv'} style={{ ...commonStyle, zIndex: is2d ? 1 : 0 }}></div>
+            <div id={'view3dDiv'} style={{ ...commonStyle, zIndex: is2d ? 0 : 1 }}></div>
+            <Switch></Switch>
+            <Dialog></Dialog>
+          </div>
+        )
+      }}
+    </BrowserOnly>
+  )
+}
+
+<WrappedInstance></WrappedInstance>
+
+## 2. 实现
+
+### `<template>` 部分
+
+```html title='src/App.vue'
+<div id="container">
+  <div id="viewDiv--2d" :style="{ ...commonViewStyle, zIndex: is2d ? 1 : 0 }"></div>
+  <div id="viewDiv--3d" :style="{ ...commonViewStyle, zIndex: is2d ? 0 : 1 }"></div>
+  <button id="switch-dimension" @click="(event) => handleSwitch(event)">{{ is2d ? '3d' : '2d' }}</button>
+  <button id="show-dialog" @click="(event) => handleDialog(event)">移动到</button>
+  <div id="dialog--2d" v-if="displayDialog && is2d">
+    <header>输入<span style='font-weight: bold'>二维地图</span>参数以移动到目标坐标点</header>
+    <form @submit="event => handle2dSubmit(event)" class="dialog__form">
+      <div v-for="item in requires2d" class="dialog__inputGroup" :key="item.placeholder">
+        <label>{{ item.placeholder }}</label>
+        <input :placeholder="item.placeholder" :value="item.model.value" required='required' v-model="item.model.value" />
+      </div>
+      <div class="dialog__button-group">
+        <button class="dialog__button-group__submit">移动</button>
+        <button class="dialog__button-group__cancel" @click="event => handleCancel(event)">取消</button>
+      </div>
+    </form>
+  </div>
+  <div id="dialog--3d" v-else-if="displayDialog && !is2d">
+    <header>输入<span style='font-weight: bold'>三维地图</span>参数以移动到目标坐标点</header>
+    <form @submit="event => handle3dSubmit(event)" class="dialog__form">
+      <div v-for="item in requires3d" class="dialog__inputGroup" :key="item.placeholder">
+        <label>{{ item.placeholder }}</label>
+        <input :placeholder="item.placeholder" :value="item.model.value" required='required' v-model="item.model.value" />
+      </div>
+      <div class="dialog__button-group">
+        <button class="dialog__button-group__submit">移动</button>
+        <button class="dialog__button-group__cancel" @click="event => handleCancel(event)">取消</button>
+      </div>
+    </form>
+  </div>
+</div>
+```
+
+### `<script setup>` 部分
+
+```js title='src/App.vue'
+import { onMounted, ref } from 'vue'
+import Map from '@arcgis/core/Map'
+import MapView from '@arcgis/core/views/MapView'
+import SceneView from '@arcgis/core/views/SceneView'
+
+const is2d = ref(true)
+const displayDialog = ref(false)
+
+const longitudeModel = ref(121.895)
+const latitudeModel = ref(30.886)
+const zoomModel = ref(14)
+const xModel = ref(121.895)
+const yModel = ref(30.886)
+const zModel = ref(2000)
+const tiltModel = ref(60)
+const headingModel = ref(60)
+const animationDurationModel = ref(1200)
+
+const requires2d = [
+  {
+    placeholder: '经度',
+    model: longitudeModel,
+  },
+  {
+    placeholder: '纬度',
+    model: latitudeModel,
+  },
+  {
+    placeholder: '缩放级别',
+    model: zoomModel,
+  },
+  {
+    placeholder: '动画时间（ms）',
+    model: animationDurationModel,
+  },
+]
+
+const requires3d = [
+  {
+    placeholder: 'X 坐标',
+    model: xModel,
+  },
+  {
+    placeholder: 'Y 坐标',
+    model: yModel,
+  },
+  {
+    placeholder: '相机高度',
+    model: zModel,
+  },
+  {
+    placeholder: '俯仰角角度',
+    model: tiltModel,
+  },
+  {
+    placeholder: '方位角角度',
+    model: headingModel,
+  },
+  {
+    placeholder: '动画时间（ms）',
+    model: animationDurationModel,
+  },
+]
+
+const commonViewStyle = {
+  height: '100%',
+  width: '100%',
+  top: '0px',
+  left: '0px',
+  position: 'absolute'
+}
+
+const handleSwitch = (event) => {
+  event.preventDefault()
+  is2d.value = !is2d.value
+}
+
+const handleDialog = (event) => {
+  event.preventDefault()
+  displayDialog.value = true
+}
+
+const handle2dSubmit = (event) => {
+  event.preventDefault()
+  // 移动到目标点
+  view2d.goTo({
+    center: [Number(longitudeModel.value), Number(latitudeModel.value)],
+    zoom: Number(zoomModel.value)
+  }, {
+    duration: Number(animationDurationModel.value)
+  })
+}
+
+const handle3dSubmit = (event) => {
+  event.preventDefault()
+  // 移动到目标点
+  view3d.goTo({
+    position: {
+      x: Number(xModel.value),
+      y: Number(yModel.value),
+      z: Number(zModel.value),
+      spaticalReference: { wkid: 3875 }
+    },
+    tilt: Number(tiltModel.value),
+    headingModel: Number(headingModel.value)
+  }, {
+    duration: Number(animationDurationModel.value)
+  })
+}
+
+const handleCancel = (event) => {
+  event.preventDefault()
+  displayDialog.value = false
+}
+
+let view2d, view3d
+
+onMounted(() => {
+  const map = new Map({
+    basemap: 'arcgis/topographic',
+    ground: 'world-elevation',
+  })
+
+  const coordinate = {
+    longitude: 122.451,
+    latitude: 30.71
+  }
+
+  view2d = new MapView({
+    map: map,
+    container: 'viewDiv--2d',
+    center: [coordinate.longitude, coordinate.latitude],
+    zoom: 12
+  })
+
+  view3d = new SceneView({
+    map: map,
+    container: 'viewDiv--3d',
+    camera: {
+      position: {
+        x: coordinate.longitude,
+        y: coordinate.latitude,
+        z: 2000
+      },
+      tilt: 40
+    }
+  })
+
+  view3d.ui.remove(['navigation-toggle', 'compass'])
+
+  const views = [view2d, view3d]
+  let active = {}
+
+  const sync = (source) => {
+    if (!active || !active.viewpoint || active !== source) {
+      return
+    }
+    for (const view of views) {
+      if (view !== active) {
+        view.viewpoint = active.viewpoint
+      }
+    }
+  }
+
+  for (const view of views) {
+    view.watch(['interacting', 'animation'], () => {
+      active = view
+      sync(active)
+    })
+    view.watch('viewpoint', () => sync(view))
+  }
+})
+```
+
+### `<style>` 部分
+
+```css title='src/App.vue'
+#container {
+  flex: 1;
+  position: relative;
+}
+
+#switch-dimension,
+#show-dialog {
+  position: absolute;
+  margin-left: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  z-index: 2;
+  text-align: center
+}
+
+#switch-dimension {
+  margin-top: 100px;
+}
+
+#show-dialog {
+  margin-top: 150px;
+}
+
+#dialog--2d,
+#dialog--3d {
+  background-color: white;
+  border-style: solid;
+  border-radius: 10px;
+  padding: 1rem;
+  position: absolute;
+  top: 20px;
+  left: 120px;
+  z-index: 2
+}
+
+.dialog__form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.dialog__inputGroup {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.dialog__button-group {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.dialog__button-group__submit,
+.dialog__button-group__cancel {
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+}
+
+.dialog__button-group__submit {
+  margin-left: 2rem;
+}
+
+.dialog__button-group__cancel {
+  margin-right: 2rem;
+}
+```
+
+## 3. 后话
