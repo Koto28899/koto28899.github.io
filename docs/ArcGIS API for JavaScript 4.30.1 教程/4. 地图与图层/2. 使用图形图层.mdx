@@ -1,0 +1,50 @@
+---
+title: 2. 加载图形图层
+sidebar_position: 2
+---
+
+## 1. 最终效果
+
+:::tip
+本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+:::
+
+import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
+
+export const WrappedInstance = () => {
+  return (
+    <BrowserOnly>
+      {() => {
+        const useEffect = require('react').useEffect;
+        const erisConfig = require('@arcgis/core/config');
+        useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+        }, [])
+        return (
+          <></>
+        )
+      }}
+    </BrowserOnly>
+  )
+}
+
+<WrappedInstance></WrappedInstance>
+
+## 2. 实现
+
+### `<template>` 部分
+
+```html title='src/App.vue'
+```
+
+### `<script setup>` 部分
+
+```js title='src/App.vue'
+```
+
+### `<style>` 部分
+
+```css title='src/App.vue'
+```
+
+## 3. 后话
