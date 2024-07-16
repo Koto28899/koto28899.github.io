@@ -7,6 +7,16 @@ sidebar_position: 6
 
 :::tip
 本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+
+使用指南：
+
+点击 `移动视图` 按钮后，鼠标单击地图，绘制点。多个点会自动连接成线段。双击结束绘制，开始移动。
+
+单击快捷键 `Z` 撤销上次的绘制。
+
+单击快捷键 `R` 恢复上次撤销。
+
+按住快捷键 `ctrl` 辅助绘制。
 :::
 
 import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
@@ -15,9 +25,8 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly>
       {() => {
-        const useState = require('react').useState;
-        const useRef = require('react').useRef;
-        const useEffect = require('react').useEffect;
+        `use strict`
+        const React = require('react');
         const erisConfig = require('@arcgis/core/config').default;
         const Map = require('@arcgis/core/Map').default;
         const MapView = require('@arcgis/core/views/MapView').default;
@@ -25,25 +34,131 @@ export const WrappedInstance = () => {
         const GraphicsLayer = require('@arcgis/core/layers/GraphicsLayer').default;
         const Point = require('@arcgis/core/geometry/Point').default;
         const Graphics = require('@arcgis/core/Graphic').default;
-
-        useEffect(() => {
-          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
-          //TODO
+        let points = React.useRef([]);
+        let currentPointIndex = React.useRef(0);
+        let graphic = React.useRef({});
+        let graphicsLayer = React.useRef({});
+        let map = React.useRef({});
+        let mapView = React.useRef({});
+        let sketchViewModel = React.useRef({});
+        let handle = React.useRef({});
+        let handleViewpoint = React.useRef({});
+        let handleInteracting = React.useRef({});
+        const calcDuration = (p1, p2) => {
+          return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)) * 10;
+        }
+        const azimuthAngle = (p1, p2) => {
+          const temp = Math.round(Math.atan((p2.y - p1.y) / (p2.x - p1.x)) * 180 / Math.PI);
+          return (temp > 0) ? (90 - temp) : (270 - temp);
+        }
+        const resetAll = () => {
+          currentPointIndex.current = 0;
+          points.current = [];
+          graphic.current.visible = false;
+          [handle, handleViewpoint, handleInteracting].map(item => item.current.remove !== undefined && item.current.remove());
+        }
+        React.useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi';
+          graphic.current = new Graphics({
+            symbol: {
+              type: 'picture-marker',
+              url: 'https://upload.shejihz.com/2020/02/100148abc0d34073de0dc4d6082854b7.jpg?x-oss-process=image/resize,m_fill,w_1440,h_1440#',
+              width: 50,
+              height: 50,
+              angle: 0,
+            },
+            visible: false
+          });
+          graphicsLayer.current = new GraphicsLayer()
+          map.current = new Map({
+            basemap: 'arcgis/imagery',
+            layers: [
+              graphicsLayer.current
+            ]
+          });
+          mapView.current = new MapView({
+            map: map.current,
+            container: 'viewDiv',
+            center: [121.895, 30.886],
+            zoom: 18,
+            constraints: {
+              rotationEnabled: false,
+              maxScale: 1300
+            }
+          });
+          mapView.current.graphics.add(graphic.current);
+          sketchViewModel.current = new SketchViewModel({
+            layer: graphicsLayer.current,
+            view: mapView.current,
+            polylineSymbol: {
+              type: 'simple-line',
+              color: [60, 160, 250],
+              width: 2
+            }
+          });
+          sketchViewModel.current.on('create', (event) => {
+            if (event.state !== 'complete') { return }
+            graphicsLayer.current.removeAll();
+            event.graphic.geometry.paths[0].map(item => {
+              points.current.push(new Point({
+                x: item[0],
+                y: item[1],
+                spatialReference: { wkid: 3857 }
+              }))
+            })
+            mapView.current.goTo({
+              center: [points.current[0].longitude, points.current[0].latitude],
+              scale: 1300
+            }, {
+              duration: 100
+            })
+            handle.current = mapView.current.watch('animation.state', (event) => {
+              if (event !== 'finished') { return }
+              graphic.current.visible = true;
+              handleViewpoint.current = mapView.current.watch('viewpoint', (event) => {
+                graphic.current.geometry = event.targetGeometry;
+              });
+              handleInteracting.current = mapView.current.watch('interacting', (_) => resetAll());
+              if (++currentPointIndex.current < points.current.length) {
+                graphic.current.symbol.angle = azimuthAngle(points.current[currentPointIndex.current], points.current[currentPointIndex.current - 1]);
+                mapView.current.goTo({
+                  center: [points.current[currentPointIndex.current].longitude, points.current[currentPointIndex.current].latitude],
+                  scale: 1300,
+                }, {
+                  duration: calcDuration(points.current[currentPointIndex.current - 1], points.current[currentPointIndex.current]),
+                  easing: 'linear',
+                });
+              } else {
+                resetAll();
+              }
+            });
+          });
         }, [])
         const containerStyle = {
-          position: 'relative'
+          position: 'relative',
+          width: '100%',
+          height: '500px'
         }
-        const moveStyle = {
-          position: 'absolute'
+        const viewDivStyle = {
+          width: '100%',
+          height: '500px'
         }
-        const handleMove = (event) => {
-          event.preventDefault()
-
+        const moveButtonStyle = {
+          position: 'absolute',
+          top: '110px',
+          left: '16px',
+          padding: '1rem',
+          hover: 'pointer'
+        }
+        const handleClick = (event) => {
+          event.preventDefault();
+          resetAll();
+          sketchViewModel.current.create('polyline', { mode: 'click' });
         }
         return (
           <div id={'container'} style={ containerStyle }>
-            <div id={'viewDiv'}></div>
-            <button id={'move'} style={ moveStyle } onClick={ event => handleMove(event) }>移动视点</button>
+            <div id={'viewDiv'} style={ viewDivStyle }></div>
+            <button id={'move-button'} style={ moveButtonStyle } onClick={ event => handleClick(event) }>移动视点</button>
           </div>
         )
       }}
