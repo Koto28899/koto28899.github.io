@@ -55,7 +55,9 @@ export const WrappedInstance = () => {
           currentPointIndex.current = 0;
           points.current = [];
           graphic.current.visible = false;
-          [handle, handleViewpoint, handleInteracting].map(item => item.current.remove !== undefined && item.current.remove());
+          [handle, handleViewpoint, handleInteracting].map(
+            item => Object.prototype.hasOwnProperty.call(item.current, 'remove') && item.current.remove()
+          );
         }
         React.useEffect(() => {
           erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi';
@@ -148,7 +150,7 @@ export const WrappedInstance = () => {
           top: '110px',
           left: '16px',
           padding: '1rem',
-          hover: 'pointer'
+          cursor: 'pointer'
         }
         const handleClick = (event) => {
           event.preventDefault();
@@ -173,16 +175,151 @@ export const WrappedInstance = () => {
 ### `<template>` 部分
 
 ```html title='src/App.vue'
+<div id="container">
+  <div id="viewDiv"></div>
+  <button id="move-button" @click="event => handleClick(event)">移动视点</button>
+</div>
 ```
 
 ### `<script setup>` 部分
 
 ```js title='src/App.vue'
+`use strict`
+
+import { onMounted } from 'vue';
+import Map from '@arcgis/core/Map';
+import MapView from '@arcgis/core/views/MapView';
+import SketchViewModel from '@arcgis/core/widgets/Sketch/SketchViewModel';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import Point from '@arcgis/core/geometry/Point';
+import Graphics from '@arcgis/core/Graphic';
+
+let [points, graphic, graphicsLayer, map, mapView, sketchViewModel, handle, handleViewpoint, handleInteracting] = new Array(9).fill({});
+let currentPointIndex= 0;
+
+const calcDuration = (p1, p2) => {
+  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)) * 10;
+}
+
+const azimuthAngle = (p1, p2) => {
+  const temp = Math.round(Math.atan((p2.y - p1.y) / (p2.x - p1.x)) * 180 / Math.PI);
+  return (temp > 0) ? (90 - temp) : (270 - temp);
+}
+
+const resetAll = () => {
+  points = [];
+  currentPointIndex = 0;
+  graphic.visible = false;
+  [handle, handleViewpoint, handleInteracting].map(item => {
+    Object.prototype.hasOwnProperty.call(item, 'remove') && item.remove()
+  });
+}
+
+onMounted(() => {
+  graphic = new Graphics({
+    symbol: {
+      type: 'picture-marker',
+      url: 'https://upload.shejihz.com/2020/02/100148abc0d34073de0dc4d6082854b7.jpg?x-oss-process=image/resize,m_fill,w_1440,h_1440#',
+      width: 50,
+      height: 50,
+      angle: 0
+    },
+    visible: false
+  });
+  graphicsLayer = new GraphicsLayer()
+  map = new Map({
+    basemap: 'arcgis/imagery',
+    layers: [
+      graphicsLayer
+    ]
+  });
+  mapView = new MapView({
+    map: map,
+    container: 'viewDiv',
+    center: [121.895, 30.886],
+    zoom: 18,
+    constraints: {
+      rotationEnabled: false,
+      maxScale: 1300
+    }
+  });
+  mapView.graphics.add(graphic);
+  sketchViewModel = new SketchViewModel({
+    layer: graphicsLayer,
+    view: mapView,
+    polylineSymbol: {
+      type: 'simple-line',
+      color: [60, 160, 250],
+      width: 2
+    }
+  });
+  sketchViewModel.on('create', (event) => {
+    if (event.state !== 'complete') { return }
+    graphicsLayer.removeAll();
+    event.graphic.geometry.paths[0].map(item => {
+      points.push(new Point({
+        x: item[0],
+        y: item[1],
+        spatialReference: { wkid: 3857 }
+      }))
+    })
+    mapView.goTo({
+      center: [points[0].longitude, points[0].latitude],
+      scale: 1300
+    }, {
+      duration: 100
+    })
+    handle = mapView.watch('animation.state', (event) => {
+      if (event !== 'finished') { return }
+      graphic.visible = true;
+      handleViewpoint = mapView.watch('viewpoint', (event) => {
+        graphic.geometry = event.targetGeometry;
+      });
+      handleInteracting = mapView.watch('interacting', (_) => resetAll());
+      if (++currentPointIndex < points.length) {
+        graphic.symbol.angle = azimuthAngle(points[currentPointIndex], points[currentPointIndex - 1]);
+        mapView.goTo({
+          center: [points[currentPointIndex].longitude, points[currentPointIndex].latitude],
+          scale: 1300
+        }, {
+          duration: calcDuration(points[currentPointIndex - 1], points[currentPointIndex]),
+          easing: 'linear'
+        });
+      } else {
+        resetAll();
+      }
+    });
+  });
+})
+
+const handleClick = (event) => {
+  event.preventDefault();
+  resetAll();
+  sketchViewModel.create('polyline', { mode: 'click' });
+}
 ```
 
 ### `<style>` 部分
 
 ```css title='src/App.vue'
+#container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#viewDiv {
+  width: 100%;
+  height: 100%;
+}
+
+#move-button {
+  position: absolute;
+  top: 110px;
+  left: 16px;
+  padding: 1rem;
+  cursor: pointer;
+}
 ```
 
 ## 3. 后话
