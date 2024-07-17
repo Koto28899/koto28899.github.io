@@ -15,14 +15,116 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly>
       {() => {
-        const useEffect = require('react').useEffect;
-        const erisConfig = require('@arcgis/core/config');
-        useEffect(() => {
-          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
-
-        }, [])
+        const React = require('react');
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const WebTileLayer = require('@arcgis/core/layers/WebTileLayer').default;
+        let vecRef = React.useRef();
+        let cvaRef = React.useRef();
+        let gdMapLayerVecRef = React.useRef({});
+        let gdMapLayerCvaRef = React.useRef({});
+        React.useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi';
+          const tianDiTuAPIKey = 'dd45be864d30f41fc2f574bf4712b41d';
+          gdMapLayerVecRef.current = new WebTileLayer({
+            title: 'tianDiTu_vec',
+            spatialReference: { wkid: 3857 },
+            urlTemplate: `https://t2.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=${ tianDiTuAPIKey }`,
+            visible: true,
+          });
+          gdMapLayerCvaRef.current = new WebTileLayer({
+            title: 'tianDiTu_cva',
+            spatialReference: { wkid: 3857 },
+            urlTemplate: `https://t3.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=${ tianDiTuAPIKey }`,
+            visible: true
+          });
+          const map = new Map({
+            basemap: {
+              baseLayers: [gdMapLayerVecRef.current, gdMapLayerCvaRef.current]
+            }
+          });
+          map.basemap.baseLayers.map(layer =>
+            (layer.title !== gdMapLayerCvaRef.current.title)
+            && (layer.title !== gdMapLayerVecRef.current.title)
+            && (layer.visible = false)
+          );
+          const mapView = new MapView({
+            map: map,
+            container: 'viewDiv',
+            center: [121.895, 30.886],
+            zoom: 15
+          });
+          [vecRef, cvaRef].map(ref => ref.current.checked = true);
+        }, []);
+        const handleChangeVec = (event) => gdMapLayerVecRef.current.visible = !gdMapLayerVecRef.current.visible;
+        const handleChangeCva = (event) => gdMapLayerCvaRef.current.visible = !gdMapLayerCvaRef.current.visible;
+        const required = [
+          {
+            label: '矢量',
+            ref: vecRef,
+            onChange: handleChangeVec
+          },
+          {
+            label: '矢量标注',
+            ref: cvaRef,
+            onChange: handleChangeCva
+          }
+        ];
+        const Options = () => {
+          const optionsStyle = {
+            backgroundColor: 'white',
+            borderStyle: 'solid',
+            borderColor: 'black',
+            borderRadius: '12%',
+            position: 'absolute',
+            padding: '1rem',
+            top: '100px',
+            left: '16px'
+          };
+          const optionStyle = {
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }
+          const checkboxStyle = {
+            width: '2rem',
+            height: '2rem',
+            cursor: "pointer"
+          };
+          return (
+            <div id={ 'options' } style={ optionsStyle }>
+              {required.map(item => { return (
+                <div className={ 'option' } key={ item.label } style={ optionStyle }>
+                  <label htmlFor={ item.label }>{ item.label }</label>
+                  <input
+                    style={ checkboxStyle }
+                    className={ item.label }
+                    type={ 'checkbox' }
+                    ref={ item.ref }
+                    onChange={ event => item.onChange(event) }
+                  />
+                </div>
+              )})}
+            </div>
+          )
+        }
+        const containerStyle = {
+          position: 'relative',
+          height: '500px',
+          width: '100%',
+        };
+        const viewDivStyle = {
+          position: 'relative',
+          height: '100%',
+          width: '100%',
+        };
         return (
-          <></>
+          <div id={ 'container' } style={ containerStyle }>
+            <div id={ 'viewDiv' } style={ viewDivStyle }></div>
+            <Options />
+          </div>
         )
       }}
     </BrowserOnly>
@@ -36,16 +138,126 @@ export const WrappedInstance = () => {
 ### `<template>` 部分
 
 ```html title='src/App.vue'
+<div id="container">
+    <div id="viewDiv"></div>
+    <div class="options">
+      <div v-for="item in requires" class="options__option" :key="item.label">
+        <label>{{ item.label }}</label>
+        <input
+          type="checkbox"
+          class="options__option__checkbox"
+          @change="(event) => item.onChange(event)"
+          checked
+        />
+      </div>
+    </div>
+  </div>
 ```
 
 ### `<script setup>` 部分
 
+:::tip
+有两点要注意：
+
+一是，记得修改天地图的 `TILEMATRIX={z}&TILEROW={y}&TILECOL={x}` 为 `TILEMATRIX={level}&TILEROW={row}&TILECOL={col}`，以适应 Arcgis 的参数。
+
+二是，在给 `map` 添加 `basemapLayer` 时，一档要把`矢量标注`放在`矢量`的后面，因为`矢量`是实心的图形，如果放反则两个不能正常显示。
+:::
+
 ```js title='src/App.vue'
+import { onMounted, ref } from 'vue'
+import Map from '@arcgis/core/Map'
+import MapView from '@arcgis/core/views/MapView'
+import WebTileLayer from '@arcgis/core/layers/WebTileLayer'
+
+let gdMapLayerVec = {}
+let gdMapLayerCva = {}
+
+const handleChangeVec = (event) => (gdMapLayerVec.visible = !gdMapLayerVec.visible)
+const handleChangeCva = (event) => (gdMapLayerCva.visible = !gdMapLayerCva.visible)
+
+const requires = [
+  {
+    label: '矢量',
+    onChange: handleChangeVec
+  },
+  {
+    label: '矢量标注',
+    onChange: handleChangeCva
+  }
+]
+
+onMounted(() => {
+  const tianDiTuAPIKey = 'dd45be864d30f41fc2f574bf4712b41d'
+  gdMapLayerVec = new WebTileLayer({
+    title: 'tianDiTu_vec',
+    spatialReference: { wkid: 3857 },
+    urlTemplate: `https://t2.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=${tianDiTuAPIKey}`,
+    visible: true
+  })
+  gdMapLayerCva = new WebTileLayer({
+    title: 'tianDiTu_cva',
+    spatialReference: { wkid: 3857 },
+    urlTemplate: `https://t3.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=${tianDiTuAPIKey}`,
+    visible: true
+  })
+  const map = new Map({
+    basemap: {
+      baseLayers: [gdMapLayerVec, gdMapLayerCva]
+    }
+  })
+  map.basemap.baseLayers.map(
+    (layer) =>
+      layer.title !== gdMapLayerCva.title &&
+      layer.title !== gdMapLayerVec.title &&
+      (layer.visible = false)
+  )
+  const mapView = new MapView({
+    map: map,
+    container: 'viewDiv',
+    center: [121.895, 30.886],
+    zoom: 15
+  })
+})
 ```
 
 ### `<style>` 部分
 
 ```css title='src/App.vue'
+#container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+#viewDiv {
+  height: 100%;
+  width: 100%;
+}
+
+.options {
+  background-color: white;
+  border-style: solid;
+  border-color: black;
+  border-radius: 12%;
+  position: absolute;
+  padding: 1rem;
+  top: 100px;
+  left: 16px;
+}
+
+.options__option {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.options__option__checkbox {
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+}
 ```
 
 ## 3. 后话
