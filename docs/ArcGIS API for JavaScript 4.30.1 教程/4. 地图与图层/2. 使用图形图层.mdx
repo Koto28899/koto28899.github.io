@@ -15,13 +15,164 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly>
       {() => {
-        const useEffect = require('react').useEffect;
-        const erisConfig = require('@arcgis/core/config');
-        useEffect(() => {
-          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+        const React = require('react');
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const GraphicsLayer = require('@arcgis/core/layers/GraphicsLayer').default;
+        const SketchViewModel = require('@arcgis/core/widgets/Sketch/SketchViewModel').default;
+        const [pointCount, setPointCount] = React.useState(0);
+        const [polylineCount, setPolylineCount] = React.useState(0);
+        const [polygonCount, setPolygonCount] = React.useState(0);
+        let map = React.useRef({});
+        let mapView = React.useRef({});
+        let graphicsLayer = React.useRef({});
+        let sketchViewModel = React.useRef({});
+        React.useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi';
+          graphicsLayer.current = new GraphicsLayer();
+          map.current = new Map({
+            basemap: 'arcgis/topographic',
+            layers: [graphicsLayer.current]
+          })
+          mapView.current = new MapView({
+            container: 'viewDiv',
+            map: map.current,
+            center: [121.895, 30.886],
+            zoom: 18,
+            constraints: {
+              rotationEnabled: false,
+              maxScale: 1300
+            }
+          });
+          sketchViewModel.current = new SketchViewModel({
+            view: mapView.current,
+            layer: graphicsLayer.current,
+            tooltipOptions: { enabled: true },
+            pointSymbol: {
+              type: 'simple-marker',
+              color: [64, 158, 255],
+              size: 15,
+              outline: { color: [200, 200, 200], width: 1 }
+            },
+            polylineSymbol: { type: 'simple-line', color: [64, 158, 255], width: 2 },
+            polygonSymbol: {
+              type: 'simple-fill',
+              style: 'diagonal-cross',
+              color: [64, 158, 255],
+              width: 2,
+              outline: { color: [64, 158, 255], width: 2 }
+            },
+          });
+          sketchViewModel.current.on(['delete', 'create'], (_) => {
+            [setPointCount, setPolylineCount, setPolygonCount].map(func => func(_ => 0))
+            graphicsLayer.current.graphics.items.map(item => {
+              switch (item.geometry.type) {
+                case 'point':
+                  setPointCount(pointCount + 1);
+                  break;
+                case 'polyline':
+                  setPolylineCount(polylineCount + 1);
+                  break;
+                case 'polygon':
+                  setPolygonCount(polygonCount + 1);
+                  break;
+                default:
+                  break;
+              }
+            })
+          })
         }, [])
+        const handleClickAddPoint = (_) => {
+          sketchViewModel.current.create('point', { mode: 'click' })
+        }
+        const handleClickAddPolyline = (_) => {
+          sketchViewModel.current.create('polyline', { mode: 'click' })
+        }
+        const handleClickAddPolygon = (_) => {
+          sketchViewModel.current.create('polygon', { mode: 'click' })
+        }
+        const handleClickRemoveAll = (_) => {
+          graphicsLayer.current.graphics.removeAll();
+          [setPointCount, setPolylineCount, setPolygonCount].map(func => func(_ => 0))
+        }
+        const buttons = [
+          { text: '绘制点', backgroundColor: '#00AEEC', onClick: handleClickAddPoint },
+          { text: '绘制线段', backgroundColor: '#00AEEC', onClick: handleClickAddPolyline },
+          { text: '绘制多边形', backgroundColor: '#00AEEC', onClick: handleClickAddPolygon },
+          { text: '移除所有', backgroundColor: 'red', onClick: handleClickRemoveAll }
+        ];
+        const textList = [
+          { prev: '已绘制 ', willBold: pointCount, next: ' 个点' },
+          { prev: '已绘制 ', willBold: polylineCount, next: ' 条线段' },
+          { prev: '已绘制 ', willBold: polygonCount, next: ' 个多边形' }
+        ]
         return (
-          <></>
+          <div id='container' style={{
+            height: '500px',
+            width: '100%',
+            position: 'relative'
+          }}>
+            <div id='viewDiv' style={{
+              height: '100%',
+              width: '100%'
+            }}></div>
+            <div className='kit' style={{
+              position: 'absolute',
+              backgroundColor: 'white',
+              border: '0.2px solid black',
+              borderRadius: '2px',
+              left: '60px',
+              top: '10px',
+              width: '24rem',
+              height: '8rem',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <div className='kit__button-groups' style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: 'white',
+              }}>
+                { buttons.map(button =>
+                  <button
+                    onClick={ event => {
+                      event.preventDefault();
+                      button.onClick(event)
+                    } }
+                    style={{
+                      color: 'white',
+                      padding: '0.8rem 1rem',
+                      cursor: 'pointer',
+                      borderStyle: 'none',
+                      borderRadius: '6px',
+                      backgroundColor: button.backgroundColor
+                    }}
+                  >
+                    { button.text }
+                  </button>
+                )}
+              </div>
+              <div className='kit__panel' style={{
+                flex: '2',
+                display: 'flex',
+                flexDirection: 'column',
+              }}>
+                {textList.map(item => { return(
+                  <p style={{ 
+                    margin: '0 4rem', 
+                    color: 'black'
+                  }}>
+                    { item.prev }
+                    <span style={{ fontWeight: 'bold' }}>{ item.willBold }</span>
+                    { item.next }
+                  </p>
+                ) })}
+              </div>
+            </div>
+          </div>
         )
       }}
     </BrowserOnly>
