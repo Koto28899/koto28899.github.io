@@ -186,16 +186,184 @@ export const WrappedInstance = () => {
 ### `<template>` 部分
 
 ```html title='src/App.vue'
+  <div id="container">
+    <div id="viewDiv"></div>
+    <div class="kit">
+      <div class="kit__button-groups">
+        <button
+            class="kit__button-groups__button"
+            v-for="button in buttons"
+            :key="button.text"
+            @click.prevent="button.onClick"
+            :style="{ backgroundColor: button.backgroundColor }"
+        >
+          {{ button.text }}
+        </button>
+      </div>
+      <div class="kit__panel">
+        <p class="kit__panel__text" v-for="text in textList" :key="text.next">
+          {{ text.prev }}
+          <span style="font-weight: bold">{{ text.willBold }}</span>
+          {{ text.next }}
+        </p>
+      </div>
+    </div>
+  </div>
 ```
 
 ### `<script setup>` 部分
 
 ```js title='src/App.vue'
+import { onMounted, ref } from "vue";
+import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import Map from "@arcgis/core/Map";
+import MapView from "@arcgis/core/views/MapView";
+import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel";
+
+let [map, mapView, graphicsLayer, sketchViewModel] = new Array(4).fill({});
+const pointCount = ref(0);
+const polylineCount = ref(0);
+const polygonCount = ref(0);
+
+onMounted(() => {
+  graphicsLayer = new GraphicsLayer();
+  map = new Map({
+    basemap: 'arcgis/topographic',
+    layers: [graphicsLayer]
+  })
+  mapView = new MapView({
+    container: 'viewDiv',
+    map: map,
+    center: [121.895, 30.886],
+    zoom: 18,
+    constraints: {
+      rotationEnabled: false,
+      maxScale: 1300
+    }
+  });
+  sketchViewModel = new SketchViewModel({
+    view: mapView,
+    layer: graphicsLayer,
+    tooltipOptions: { enabled: true },
+    pointSymbol: {
+      type: 'simple-marker',
+      color: [64, 158, 255],
+      size: 15,
+      outline: { color: [200, 200, 200], width: 1 }
+    },
+    polylineSymbol: { type: 'simple-line', color: [64, 158, 255], width: 2 },
+    polygonSymbol: {
+      type: 'simple-fill',
+      style: 'diagonal-cross',
+      color: [64, 158, 255],
+      width: 2,
+      outline: { color: [64, 158, 255], width: 2 }
+    },
+  });
+  sketchViewModel.on(['delete', 'create'], (_) => {
+    [pointCount, polylineCount, polygonCount].map(item => item.value = 0)
+    graphicsLayer.graphics.items.map(item => {
+      switch (item.geometry.type) {
+        case 'point':
+          pointCount.value++;
+          break;
+        case 'polyline':
+          polylineCount.value++;
+          break;
+        case 'polygon':
+          polygonCount.value++;
+          break;
+        default:
+          break;
+      }
+    })
+  })
+})
+
+const handleClickAddPoint = (_) => {
+  sketchViewModel.create('point', { mode: 'click' })
+}
+
+const handleClickAddPolyline = (_) => {
+  sketchViewModel.create('polyline', { mode: 'click' })
+}
+
+const handleClickAddPolygon = (_) => {
+  sketchViewModel.create('polygon', { mode: 'click' })
+}
+
+const handleClickRemoveAll = (_) => {
+  graphicsLayer.graphics.removeAll();
+  [pointCount, polylineCount, polygonCount].map(item => item.value = 0)
+}
+
+const buttons = [
+  { text: '绘制点', backgroundColor: '#00AEEC', onClick: handleClickAddPoint },
+  { text: '绘制线段', backgroundColor: '#00AEEC', onClick: handleClickAddPolyline },
+  { text: '绘制多边形', backgroundColor: '#00AEEC', onClick: handleClickAddPolygon },
+  { text: '移除所有', backgroundColor: 'red', onClick: handleClickRemoveAll }
+];
+
+const textList = [
+  { prev: '已绘制 ', willBold: pointCount, next: ' 个点' },
+  { prev: '已绘制 ', willBold: polylineCount, next: ' 条线段' },
+  { prev: '已绘制 ', willBold: polygonCount, next: ' 个多边形' }
+]
 ```
 
 ### `<style>` 部分
 
 ```css title='src/App.vue'
+#container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+#viewDiv {
+  height: 100%;
+  width: 100%;
+}
+
+.kit {
+  position: absolute;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 2px;
+  left: 60px;
+  top: 10px;
+  width: 24rem;
+  height: 8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.kit__button-groups {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-content: center;
+  background-color: white;
+}
+
+.kit__button-groups__button {
+  color: white;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  border-style: none;
+  border-radius: 6px;
+}
+
+.kit__panel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.kit__panel__text {
+  margin: 0.4rem;
+  color: black
+}
 ```
 
 ## 3. 后话
