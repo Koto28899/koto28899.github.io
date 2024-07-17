@@ -65,22 +65,25 @@ export const WrappedInstance = () => {
             },
           });
           sketchViewModel.current.on(['delete', 'create'], (_) => {
-            [setPointCount, setPolylineCount, setPolygonCount].map(func => func(_ => 0))
+            let [tempPointCount, tempPolylineCount, tempPolygonCount] = new Array(3).fill(0);
             graphicsLayer.current.graphics.items.map(item => {
               switch (item.geometry.type) {
                 case 'point':
-                  setPointCount(pointCount + 1);
+                  tempPointCount++;
                   break;
                 case 'polyline':
-                  setPolylineCount(polylineCount + 1);
+                  tempPolylineCount++;
                   break;
                 case 'polygon':
-                  setPolygonCount(polygonCount + 1);
+                  tempPolygonCount++;
                   break;
                 default:
                   break;
               }
-            })
+            });
+            setPointCount(tempPointCount);
+            setPolylineCount(tempPolylineCount);
+            setPolygonCount(tempPolygonCount);
           })
         }, [])
         const handleClickAddPoint = (_) => {
@@ -94,7 +97,7 @@ export const WrappedInstance = () => {
         }
         const handleClickRemoveAll = (_) => {
           graphicsLayer.current.graphics.removeAll();
-          [setPointCount, setPolylineCount, setPolygonCount].map(func => func(_ => 0))
+          [setPointCount, setPolylineCount, setPolygonCount].map(func => func(0));
         }
         const buttons = [
           { text: '绘制点', backgroundColor: '#00AEEC', onClick: handleClickAddPoint },
