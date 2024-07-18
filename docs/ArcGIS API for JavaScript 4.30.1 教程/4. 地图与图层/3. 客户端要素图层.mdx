@@ -15,13 +15,176 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly>
       {() => {
-        const useEffect = require('react').useEffect;
-        const erisConfig = require('@arcgis/core/config');
-        useEffect(() => {
-          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
+        const React = require('react');
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const FeatureLayer = require('@arcgis/core/layers/FeatureLayer').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const Sketch = require('@arcgis/core/widgets/Sketch').default;
+        const Popup = require('@arcgis/core/widgets/Popup').default;
+        const GeometryEngine = require('@arcgis/core/geometry/geometryEngine');
+        const idPoint = React.useRef(-1);
+        const idPolyline = React.useRef(-1);
+        const idPolygon = React.useRef(-1);
+        const pointFeatureLayer = new FeatureLayer({
+          title: 'client side point feature layer',
+          fields: [
+            { name: 'longitude', alias: '经度', type: 'string' },
+            { name: 'latitude', alias: '纬度', type: 'string' },
+          ],
+          geometryType: 'point',
+          source: [],
+          objectIdField: 'oid',
+          renderer: {
+            type: 'simple',
+            label: 'DIV point'
+          },
+          labelingInfo: [
+            {
+              labelExpressionInfo: {
+                expression: `'longitude: ' + $feature.longitude + '°' + TextFormatting.NewLine + 'latitude: ' + $feature.latitude + '°'`
+              },
+              minScale: 20_0000,
+              labelPlacement: 'center-right'
+            }
+          ]
+        });
+        const polylineFeatureLayer = new FeatureLayer({
+          title: 'client side polyline feature layer',
+          fields: [
+            { name: 'length', alias: '长度', type: 'string' }
+          ],
+          geometryType: 'polyline',
+          source: [],
+          objectIdField: 'oid',
+          renderer: {
+            type: 'simple',
+            label: 'DIV polyline'
+          },
+          labelingInfo: [
+            {
+              labelExpressionInfo: {
+                expression: `'length: ' + $feature.length + 'meters'`
+              },
+              minScale: 20_0000
+            }
+          ]
+        });
+        const polygonFeatureLayer = new FeatureLayer({
+          title: 'client side polygon feature layer',
+          fields: [
+            { name: 'area', alias: '面积', type: 'string' },
+            { name: 'length', alias: '周长', type: 'string' }
+          ],
+          geometryType: 'polygon',
+          source: [],
+          objectIdField: 'oid',
+          renderer: {
+            type: 'simple',
+            label: 'DIV polygon'
+          },
+          labelingInfo: [
+            {
+              labelExpressionInfo: {
+                expression: `'area: ' + $feature.area + 'square meters' + TextFormatting.NewLine + 'length: ' + $feature.length + 'meters'`
+              },
+              minScale: 20_0000
+            }
+          ]
+        });
+        const map = new Map({
+          basemap: 'arcgis/imagery',
+          layers: [pointFeatureLayer, polylineFeatureLayer, polygonFeatureLayer]
+        });
+        React.useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi';
+          const popup = new Popup({
+            defaultPopupTemplateEnabled: true,
+            visibleElements: {
+              actionBar: false,
+              collapseButton: false
+            },
+            dockOptions: {
+              buttonEnabled: false
+            }
+          });
+          const mapView = new MapView({
+            container: 'viewDiv',
+            map: map,
+            center: [121.895, 30.886],
+            scale: 15_0000,
+            constraints: {
+              minScale: 50_0000,
+              maxScale: 1300
+            },
+            spatialReference: { wkid: 3857 },
+            popup: popup
+          });
+          const sketch = new Sketch({
+            layer: mapView.graphics,
+            view: mapView,
+            creationMode: 'single',
+            tooltipOptions: {
+              enabled: true
+            },
+          });
+          mapView.ui.add(sketch, 'top-right');
+          pointFeatureLayer.renderer.symbol = sketch.viewModel.pointSymbol;
+          polylineFeatureLayer.renderer.symbol = sketch.viewModel.polylineSymbol;
+          polygonFeatureLayer.renderer.symbol = sketch.viewModel.polygonSymbol;
+          sketch.on('create', (event) => {
+            if (event.state !== 'complete') { return }
+            switch (event.graphic.geometry.type) {
+              case "polygon":
+                polygonFeatureLayer.applyEdits({
+                  addFeatures: [
+                    {
+                      attributes: {
+                        oid: idPolygon.current++,
+                        area: GeometryEngine.planarArea(event.graphic.geometry, 'square-meters').toFixed(3),
+                        length: GeometryEngine.planarLength(event.graphic.geometry, 'meters').toFixed(3),
+                      },
+                      geometry: event.graphic.geometry
+                    }
+                  ]
+                });
+                break;
+              case "polyline":
+                polylineFeatureLayer.applyEdits({
+                  addFeatures: [
+                    {
+                      attributes: {
+                        oid: idPolyline.current++,
+                        length: GeometryEngine.planarLength(event.graphic.geometry, 'meters').toFixed(3),
+                      },
+                      geometry: event.graphic.geometry
+                    }
+                  ]
+                })
+                break;
+              case "point":
+                pointFeatureLayer.applyEdits({
+                  addFeatures: [
+                    {
+                      attributes: {
+                        oid: idPoint.current++,
+                        longitude: event.graphic.geometry.longitude.toFixed(8),
+                        latitude: event.graphic.geometry.latitude.toFixed(8),
+                      },
+                      geometry: event.graphic.geometry
+                    }
+                  ]
+                })
+                break;
+              default:
+                break;
+            }
+          });
         }, [])
         return (
-          <></>
+          <div id='container' style={{ width: '100%', height: '500px'}}>
+            <div id='viewDiv' style={{ width: '100%', height: '100%'}}></div>
+          </div>
         )
       }}
     </BrowserOnly>
@@ -35,16 +198,200 @@ export const WrappedInstance = () => {
 ### `<template>` 部分
 
 ```html title='src/App.vue'
+<div id='container'>
+  <div id='viewDiv'></div>
+</div>
 ```
 
 ### `<script setup>` 部分
 
 ```js title='src/App.vue'
+import { onMounted } from 'vue';
+import Map from '@arcgis/core/Map';
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import MapView from '@arcgis/core/views/MapView';
+import Sketch from '@arcgis/core/widgets/Sketch';
+import Popup from '@arcgis/core/widgets/Popup';
+import GeometryEngine from '@arcgis/core/geometry/geometryEngine';
+
+let [idPoint, idPolyline, idPolygon] = new Array(3).fill(-1);
+
+const pointFeatureLayer = new FeatureLayer({
+  title: 'client side point feature layer',
+  fields: [
+    { name: 'longitude', alias: '经度', type: 'string' },
+    { name: 'latitude', alias: '纬度', type: 'string' },
+  ],
+  geometryType: 'point',
+  source: [],
+  objectIdField: 'oid',
+  renderer: {
+    type: 'simple',
+    label: 'DIV point'
+  },
+  labelingInfo: [
+    {
+      labelExpressionInfo: {
+        expression: `'longitude: ' + $feature.longitude + '°' + TextFormatting.NewLine + 'latitude: ' + $feature.latitude + '°'`
+      },
+      minScale: 20_0000,
+      labelPlacement: 'center-right'
+    }
+  ]
+});
+
+const polylineFeatureLayer = new FeatureLayer({
+  title: 'client side polyline feature layer',
+  fields: [
+    { name: 'length', alias: '长度', type: 'string' }
+  ],
+  geometryType: 'polyline',
+  source: [],
+  objectIdField: 'oid',
+  renderer: {
+    type: 'simple',
+    label: 'DIV polyline'
+  },
+  labelingInfo: [
+    {
+      labelExpressionInfo: {
+        expression: `'length: ' + $feature.length + 'meters'`
+      },
+      minScale: 20_0000
+    }
+  ]
+});
+
+const polygonFeatureLayer = new FeatureLayer({
+  title: 'client side polygon feature layer',
+  fields: [
+    { name: 'area', alias: '面积', type: 'string' },
+    { name: 'length', alias: '周长', type: 'string' }
+  ],
+  geometryType: 'polygon',
+  source: [],
+  objectIdField: 'oid',
+  renderer: {
+    type: 'simple',
+    label: 'DIV polygon'
+  },
+  labelingInfo: [
+    {
+      labelExpressionInfo: {
+        expression: `'area: ' + $feature.area + 'square meters' + TextFormatting.NewLine + 'length: ' + $feature.length + 'meters'`
+      },
+      minScale: 20_0000
+    }
+  ]
+});
+
+const map = new Map({
+  basemap: 'arcgis/imagery',
+  layers: [pointFeatureLayer, polylineFeatureLayer, polygonFeatureLayer]
+});
+
+onMounted(() => {
+  const popup = new Popup({
+    defaultPopupTemplateEnabled: true,
+    visibleElements: {
+      actionBar: false,
+      collapseButton: false
+    },
+    dockOptions: {
+      buttonEnabled: false
+    }
+  });
+
+  const mapView = new MapView({
+    container: 'viewDiv',
+    map: map,
+    center: [121.895, 30.886],
+    scale: 15_0000,
+    constraints: {
+      minScale: 50_0000,
+      maxScale: 1300
+    },
+    spatialReference: { wkid: 3857 },
+    popup: popup
+  });
+
+  const sketch = new Sketch({
+    layer: mapView.graphics,
+    view: mapView,
+    creationMode: 'single',
+    tooltipOptions: {
+      enabled: true
+    }
+  });
+
+  mapView.ui.add(sketch, 'top-right');
+
+  pointFeatureLayer.renderer.symbol = sketch.viewModel.pointSymbol;
+  polylineFeatureLayer.renderer.symbol = sketch.viewModel.polylineSymbol;
+  polygonFeatureLayer.renderer.symbol = sketch.viewModel.polygonSymbol;
+
+  sketch.on('create', (event) => {
+    if (event.state !== 'complete') { return }
+    switch (event.graphic.geometry.type) {
+      case "polygon":
+        polygonFeatureLayer.applyEdits({
+          addFeatures: [
+            {
+              attributes: {
+                oid: idPolygon.current++,
+                area: GeometryEngine.planarArea(event.graphic.geometry, 'square-meters').toFixed(3),
+                length: GeometryEngine.planarLength(event.graphic.geometry, 'meters').toFixed(3),
+              },
+              geometry: event.graphic.geometry
+            }
+          ]
+        });
+        break;
+
+      case "polyline":
+        polylineFeatureLayer.applyEdits({
+          addFeatures: [
+            {
+              attributes: {
+                oid: idPolyline.current++,
+                length: GeometryEngine.planarLength(event.graphic.geometry, 'meters').toFixed(3),
+              },
+              geometry: event.graphic.geometry
+            }
+          ]
+        })
+        break;
+
+      case "point":
+        pointFeatureLayer.applyEdits({
+          addFeatures: [
+            {
+              attributes: {
+                oid: idPoint.current++,
+                longitude: event.graphic.geometry.longitude.toFixed(8),
+                latitude: event.graphic.geometry.latitude.toFixed(8),
+              },
+              geometry: event.graphic.geometry
+            }
+          ]
+        })
+        break;
+
+      default:
+        break;
+    }
+  });
+});
 ```
 
 ### `<style>` 部分
 
 ```css title='src/App.vue'
+#container,
+#viewDiv {
+  height: 100%;
+  width: 100%;
+}
 ```
 
 ## 3. 后话
