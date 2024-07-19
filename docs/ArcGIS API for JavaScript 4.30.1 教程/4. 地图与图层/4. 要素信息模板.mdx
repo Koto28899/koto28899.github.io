@@ -7,6 +7,10 @@ sidebar_position: 4
 
 :::tip
 本文档 powered by React，我用 React 模拟了教程中 Vue 框架下的效果。
+
+一个个取点很麻烦，只取了学校的研究生区、学院和一些重要的设施。
+
+不知道为什么，如果显示字符串，则 arcgis 的替换有时不会产生效果，所有建议使用表格式显示！
 :::
 
 import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
@@ -15,13 +19,730 @@ export const WrappedInstance = () => {
   return (
     <BrowserOnly>
       {() => {
-        const useEffect = require('react').useEffect;
-        const erisConfig = require('@arcgis/core/config');
-        useEffect(() => {
-          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi'
-        }, [])
+        const React = require('react');
+        const erisConfig = require('@arcgis/core/config').default;
+        const Map = require('@arcgis/core/Map').default;
+        const MapView = require('@arcgis/core/views/MapView').default;
+        const FeatureLayer = require('@arcgis/core/layers/FeatureLayer').default;
+        const Popup = require('@arcgis/core/widgets/Popup').default;
+        const featureLayer = React.useRef({});
+        let tempCount = 1;
+        const autoIncrease = () => tempCount++
+        const featuresCollection = [
+          {
+            geometry: {
+              type: "point",
+              x: 121.89213003569918,
+              y: 30.885839254619288
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学习",
+              place: "图书馆与校史馆",
+              recordedDate: Date.now(),
+              imageUrl: 'https://img.picui.cn/free/2024/07/19/669a5f7879b59.jpg'
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89652445708056,
+              y: 30.889256597247225
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "出入口",
+              place: "一号门",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89546130173089,
+              y: 30.889322306873698
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "行政",
+              place: "行政楼",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.8941990124313,
+              y: 30.88830269099379
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "信息学院",
+              recordedDate: Date.now(),
+              imageUrl: 'https://img.picui.cn/free/2024/07/19/669a5ebad5fc2.jpg'
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89356690561,
+              y: 30.888572000254573
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "爱恩学院与经济管理学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89420616988293,
+              y: 30.88960744100556
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学习",
+              place: "没有被拍到的文科大楼",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89281767511613,
+              y: 30.889587849017186
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学习",
+              place: "海洋科技大楼（海科楼）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89165896082157,
+              y: 30.89044716887785
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "出入口",
+              place: "二号门（未开放）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89190780819915,
+              y: 30.889341177205193
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "食堂",
+              place: "第三餐厅",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89103877215082,
+              y: 30.889724804088765
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "第十五小区",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.8907133306812,
+              y: 30.889436316897655
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "第十二小区",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89102804298736,
+              y: 30.88937800558869
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B001（第十二小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89047014351218,
+              y: 30.889374936475313
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B002（第十二小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89035312987912,
+              y: 30.888830942300814
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "第十三小区",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89034854992781,
+              y: 30.888650645167253
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B004（第十三小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88999449833778,
+              y: 30.888705887924733
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B005（第十三小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89035927876385,
+              y: 30.889037343800567
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B007（第十三小区）（B006 在哪里？）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89005004042438,
+              y: 30.889028127924604
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B008（第十三小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88960211135517,
+              y: 30.888682093834635
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B009（第十四小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88961999280319,
+              y: 30.88884014941193
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "第十四小区",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.8893177971997,
+              y: 30.88869436995486
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B010（第十四小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88968436581953,
+              y: 30.889008946245546
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B012（第十四小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88937322957388,
+              y: 30.88901968790197
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "宿舍",
+              place: "B013（第十四小区）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88904867909524,
+              y: 30.88810432149232
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "科研",
+              place: "海洋信息大楼（在建）",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88806699026831,
+              y: 30.888026060488507
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "设施",
+              place: "停车场",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88875900019397,
+              y: 30.88730789698844
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "科研",
+              place: "某种水产类科研设施",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.88906298399137,
+              y: 30.886996384160017
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "设施",
+              place: "垃圾场",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.8880737197631,
+              y: 30.887524059030948
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "进出口",
+              place: "三号门",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89213204921789,
+              y: 30.8870505448722
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "（原）海洋科学学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89126301349698,
+              y: 30.88704133758904
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "食品学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89032602902678,
+              y: 30.88744952610504
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "水产学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89257214002589,
+              y: 30.887781643072323
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "工程学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89228270050324,
+              y: 30.887621778240543
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "（原）海洋环境与生态学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89391817558821,
+              y: 30.88427091455714
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "教学",
+              place: "第一教学楼",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89356613836088,
+              y: 30.885118349573997
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "教学",
+              place: "第二教学楼",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89436007222939,
+              y: 30.885808907218443
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "教学",
+              place: "第三教学楼",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89500022633264,
+              y: 30.886198686540034
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "教学",
+              place: "第四教学楼",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+          {
+            geometry: {
+              type: "point",
+              x: 121.89208790810186,
+              y: 30.884298459471236
+            },
+            attributes: {
+              ObjectID: autoIncrease(),
+              type: "学院",
+              place: "马克思主义学院",
+              recordedDate: Date.now(),
+              imageUrl: ''
+            }
+          },
+        ];
+        const featureLayerFields = [
+          { name: 'ObjectID', alias: '点 ID', type: 'oid' },
+          { name: 'type', alias: '类别', type: 'string' },
+          { name: 'place', alias: '地点', type: 'string' },
+          { name: 'recordedDate', alias: '记录时时间', type: 'date' },
+          { name: 'imageUrl', alias: '图片链接', type: 'string' }
+        ];
+        React.useEffect(() => {
+          erisConfig.apiKey = 'AAPK4921d37ecb56482ba2386a2bbb2affb1i_3BKdzBcjC9XP_Oa2984a77Jp55AsuPhcutaZbxNlweInfInLVEnY_Uq9D-pVxi';
+          featureLayer.current = new FeatureLayer({
+            title: "client side point feature layer",
+            fields: featureLayerFields,
+            dateFieldsTimeZone: 'Asia/SHANG_HAI',
+            objectIdField: 'ObjectID',
+            geometryType: 'point',
+            spatialReference: { wkid: 3857 },
+            source: featuresCollection,
+            popupTemplate: {
+              title: '{ place }',
+              content: [
+                {
+                  type: 'fields',
+                  fieldInfos: [
+                    { fieldName: 'type', label: '类别' },
+                    { fieldName: 'place', label: '地点' },
+                    { fieldName: 'recordedDate', label: '记录时时间' }
+                  ]
+                }
+              ]
+            },
+            renderer: {
+              type: 'simple',
+              symbol: {
+                type: 'simple-marker',
+                color: [64, 158, 255],
+                size: 15,
+                outline: { color: [200, 200, 200], width: 1.5 }
+              }
+            },
+            labelsVisible: false,
+          });
+          const map = new Map({
+            basemap: 'arcgis/imagery',
+            layers: [featureLayer.current]
+          });
+          const popup = new Popup({
+            visibleElements: {
+              collapseButton: false,
+              actionBar: false,
+              closeButton: false
+            },
+            dockOptions: {
+              buttonEnabled: false
+            }
+          });
+          const mapView = new MapView({
+            container: "viewDiv",
+            map: map,
+            center: [121.89255062207127, 30.885831068414372],
+            zoom: 17,
+            popup: popup
+          });
+        }, []);
+        const radioGroup = [
+          {
+            idAndValue: 'functional-information-template',
+            label: '函数型信息模板',
+            onChange: (event) => {
+              setRadioState(event.target.value);
+              featureLayer.current.popupTemplate = {
+                title: '{ place }',
+                content: () => {
+                  const message = featureLayerFields.map(field => {
+                    return field.alias + `: {${ field.name }}<br />`
+                  });
+                  return `<div>${ message }</div>`;
+                }
+              };
+            }
+          },
+          {
+            idAndValue: 'tabular-information-template',
+            label: '表格型信息模板',
+            onChange: (event) => {
+              setRadioState(event.target.value);
+              featureLayer.current.popupTemplate = {
+                title: '{ place }',
+                content: [
+                  {
+                    type: 'fields',
+                    fieldInfos: [
+                      { fieldName: 'type', label: '类别' },
+                      { fieldName: 'place', label: '地点' },
+                      { fieldName: 'recordedDate', label: '记录时时间' }
+                    ]
+                  }
+                ]
+              };
+            }
+          },
+          {
+            idAndValue: 'text-based-information-template',
+            label: '文本型信息模板',
+            onChange: (event) => {
+              setRadioState(event.target.value);
+              featureLayer.current.popupTemplate = {
+                title: '{ place }',
+                content: '地点：{place}, 类型：{type}，ID: {ObjectID}, 记录时间：{recordedDate}'
+              };
+            }
+          },
+          {
+            idAndValue: 'display-image',
+            label: '展示图片',
+            onChange: (event) => {
+              setRadioState(event.target.value);
+              featureLayer.current.popupTemplate = {
+                title: '{ place }',
+                content: '<img src="{ imageUrl }" alt="我手机相册里没有多少学校的建筑照，所以只有图书馆和信息学院可以展示图片"/>'
+              }
+            }
+          },
+        ];
+        const [radioState, setRadioState] = React.useState(radioGroup[1].idAndValue);
+        const componentStyle = {
+          container: {
+            width: '100%',
+            height: '500px',
+            position: 'relative'
+          },
+          viewDiv: {
+            width: '100%',
+            height: '100%',
+            position: 'relative'
+          },
+          panel: {
+            position: 'absolute',
+            backgroundColor: 'white',
+            height: '12rem',
+            width: '14rem',
+            right: '0',
+            top: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            border: '2px solid black',
+            borderRadius: '4px',
+            padding: '1rem'
+          },
+          commonRadioGroup: {
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            color: 'black',
+          },
+          commonRadio: {
+            width: '2rem',
+            height: '2rem',
+            cursor: 'pointer'
+          }
+        }
         return (
-          <></>
+          <div id='container' style={ componentStyle.container }>
+            <div id='viewDiv' style={ componentStyle.viewDiv }></div>
+            <div className='panel' style={ componentStyle.panel }>
+              {radioGroup.map(item => {return(
+                <div className='panel__radio' key={ item.id } style={ componentStyle.commonRadioGroup }>
+                  <label className='panel__radio__label' htmlFor={ item.idAndValue }>{ item.label }</label>
+                  <input
+                    id={ item.idAndValue }
+                    style={ componentStyle.commonRadio }
+                    type='radio'
+                    value={ item.idAndValue }
+                    onChange={ event => { item.onChange(event); } }
+                    checked={ radioState === item.idAndValue }
+                  />
+                </div>
+              )})}
+            </div>
+          </div>
         )
       }}
     </BrowserOnly>
@@ -35,16 +756,754 @@ export const WrappedInstance = () => {
 ### `<template>` 部分
 
 ```html title='src/App.vue'
+<div id="container">
+  <div id="viewDiv"></div>
+  <div class="panel">
+    <div v-for="item in radioGroup" class="panel__radio" :key="item.idAndValue">
+      <label class="panel__radio__label" :for="item.idAndValue">{{ item.label }}</label>
+      <input
+        class="panel__radio__input"
+        :id="item.idAndValue"
+        type="radio"
+        :value="item.idAndValue"
+        @change="(event) => item.onChange(event)"
+        :checked="radioState === item.idAndValue"
+      />
+    </div>
+  </div>
+</div>
 ```
 
 ### `<script setup>` 部分
 
+创建一个 js 文件临时存放点数据
+
+```js title='src/stores/featuresCollection.js'
+let tempCount = 1;
+const autoIncrease = () => tempCount++;
+
+const featuresCollection = [
+  {
+    geometry: {
+      type: "point",
+      x: 121.89213003569918,
+      y: 30.885839254619288
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学习",
+      place: "图书馆与校史馆",
+      recordedDate: Date.now(),
+      imageUrl: 'https://img.picui.cn/free/2024/07/19/669a5f7879b59.jpg'
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89652445708056,
+      y: 30.889256597247225
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "出入口",
+      place: "一号门",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89546130173089,
+      y: 30.889322306873698
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "行政",
+      place: "行政楼",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.8941990124313,
+      y: 30.88830269099379
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "信息学院",
+      recordedDate: Date.now(),
+      imageUrl: 'https://img.picui.cn/free/2024/07/19/669a5ebad5fc2.jpg'
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89356690561,
+      y: 30.888572000254573
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "爱恩学院与经济管理学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89420616988293,
+      y: 30.88960744100556
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学习",
+      place: "没有被拍到的文科大楼",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89281767511613,
+      y: 30.889587849017186
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学习",
+      place: "海洋科技大楼（海科楼）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89165896082157,
+      y: 30.89044716887785
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "出入口",
+      place: "二号门（未开放）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89190780819915,
+      y: 30.889341177205193
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "食堂",
+      place: "第三餐厅",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89103877215082,
+      y: 30.889724804088765
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "第十五小区",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.8907133306812,
+      y: 30.889436316897655
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "第十二小区",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89102804298736,
+      y: 30.88937800558869
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B001（第十二小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89047014351218,
+      y: 30.889374936475313
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B002（第十二小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89035312987912,
+      y: 30.888830942300814
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "第十三小区",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89034854992781,
+      y: 30.888650645167253
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B004（第十三小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88999449833778,
+      y: 30.888705887924733
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B005（第十三小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89035927876385,
+      y: 30.889037343800567
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B007（第十三小区）（B006 在哪里？）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89005004042438,
+      y: 30.889028127924604
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B008（第十三小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88960211135517,
+      y: 30.888682093834635
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B009（第十四小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88961999280319,
+      y: 30.88884014941193
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "第十四小区",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.8893177971997,
+      y: 30.88869436995486
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B010（第十四小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88968436581953,
+      y: 30.889008946245546
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B012（第十四小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88937322957388,
+      y: 30.88901968790197
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "宿舍",
+      place: "B013（第十四小区）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88904867909524,
+      y: 30.88810432149232
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "科研",
+      place: "海洋信息大楼（在建）",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88806699026831,
+      y: 30.888026060488507
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "设施",
+      place: "停车场",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88875900019397,
+      y: 30.88730789698844
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "科研",
+      place: "某种水产类科研设施",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.88906298399137,
+      y: 30.886996384160017
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "设施",
+      place: "垃圾场",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.8880737197631,
+      y: 30.887524059030948
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "进出口",
+      place: "三号门",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89213204921789,
+      y: 30.8870505448722
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "（原）海洋科学学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89126301349698,
+      y: 30.88704133758904
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "食品学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89032602902678,
+      y: 30.88744952610504
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "水产学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89257214002589,
+      y: 30.887781643072323
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "工程学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89228270050324,
+      y: 30.887621778240543
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "（原）海洋环境与生态学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89391817558821,
+      y: 30.88427091455714
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "教学",
+      place: "第一教学楼",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89356613836088,
+      y: 30.885118349573997
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "教学",
+      place: "第二教学楼",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89436007222939,
+      y: 30.885808907218443
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "教学",
+      place: "第三教学楼",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89500022633264,
+      y: 30.886198686540034
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "教学",
+      place: "第四教学楼",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+  {
+    geometry: {
+      type: "point",
+      x: 121.89208790810186,
+      y: 30.884298459471236
+    },
+    attributes: {
+      ObjectID: autoIncrease(),
+      type: "学院",
+      place: "马克思主义学院",
+      recordedDate: Date.now(),
+      imageUrl: ''
+    }
+  },
+];
+
+export default featuresCollection;
+```
+
 ```js title='src/App.vue'
+import { onMounted, ref } from 'vue'
+import featuresCollection from '@/stores/featuresCollection'
+import Map from '@arcgis/core/Map'
+import MapView from '@arcgis/core/views/MapView'
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer'
+import Popup from '@arcgis/core/widgets/Popup'
+
+let featureLayer = {}
+
+const featureLayerFields = [
+  { name: 'ObjectID', alias: '点 ID', type: 'oid' },
+  { name: 'type', alias: '类别', type: 'string' },
+  { name: 'place', alias: '地点', type: 'string' },
+  { name: 'recordedDate', alias: '记录时时间', type: 'date' },
+  { name: 'imageUrl', alias: '图片链接', type: 'string' }
+]
+
+const radioGroup = [
+  {
+    idAndValue: 'functional-information-template',
+    label: '函数型信息模板',
+    onChange: (event) => {
+      radioState.value = event.target.value
+      featureLayer.popupTemplate = {
+        title: '{ place }',
+        content: () => {
+          const message = featureLayerFields.map((field) => {
+            return field.alias + `: {${field.name}}<br />`
+          })
+          return `<div>${message}</div>`
+        }
+      }
+    }
+  },
+  {
+    idAndValue: 'tabular-information-template',
+    label: '表格型信息模板',
+    onChange: (event) => {
+      radioState.value = event.target.value
+      featureLayer.popupTemplate = {
+        title: '{ place }',
+        content: [
+          {
+            type: 'fields',
+            fieldInfos: [
+              { fieldName: 'type', label: '类别' },
+              { fieldName: 'place', label: '地点' },
+              { fieldName: 'recordedDate', label: '记录时时间' }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    idAndValue: 'text-based-information-template',
+    label: '文本型信息模板',
+    onChange: (event) => {
+      radioState.value = event.target.value
+      featureLayer.popupTemplate = {
+        title: '{ place }',
+        content: '地点：{place}, 类型：{type}，ID: {ObjectID}, 记录时间：{recordedDate}'
+      }
+    }
+  },
+  {
+    idAndValue: 'display-image',
+    label: '展示图片',
+    onChange: (event) => {
+      radioState.value = event.target.value
+      featureLayer.popupTemplate = {
+        title: '{ place }',
+        content: '<img src="{ imageUrl }" alt="我手机相册里没有多少学校的建筑照，所以只有图书馆和信息学院可以展示图片"/>'
+      }
+    }
+  }
+]
+
+const radioState = ref(radioGroup[0].idAndValue)
+
+onMounted(() => {
+  featureLayer = new FeatureLayer({
+    title: 'client side point feature layer',
+    fields: featureLayerFields,
+    dateFieldsTimeZone: 'Asia/SHANG_HAI',
+    objectIdField: 'ObjectID',
+    geometryType: 'point',
+    spatialReference: { wkid: 3857 },
+    source: featuresCollection,
+    popupTemplate: {
+      title: '{ place }',
+      content: [
+        {
+          type: 'fields',
+          fieldInfos: [
+            { fieldName: 'type', label: '类别' },
+            { fieldName: 'place', label: '地点' },
+            { fieldName: 'recordedDate', label: '记录时时间' }
+          ]
+        }
+      ]
+    },
+    renderer: {
+      type: 'simple',
+      symbol: {
+        type: 'simple-marker',
+        color: [64, 158, 255],
+        size: 15,
+        outline: { color: [200, 200, 200], width: 1.5 }
+      }
+    },
+    labelsVisible: false
+  })
+
+  const map = new Map({
+    basemap: 'arcgis/imagery',
+    layers: [featureLayer]
+  })
+
+  const popup = new Popup({
+    visibleElements: {
+      collapseButton: false,
+      actionBar: false,
+      closeButton: false
+    },
+    dockOptions: {
+      buttonEnabled: false
+    }
+  })
+
+  const mapView = new MapView({
+    container: 'viewDiv',
+    map: map,
+    center: [121.89255062207127, 30.885831068414372],
+    zoom: 17,
+    popup: popup
+  })
+})
 ```
 
 ### `<style>` 部分
 
 ```css title='src/App.vue'
+#container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+#viewDiv {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.panel {
+  position: absolute;
+  background-color: white;
+  height: 12rem;
+  width: 14rem;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 2px solid black;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.panel__radio {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  color: black;
+}
+
+.panel__radio__input {
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+}
 ```
 
 ## 3. 后话
